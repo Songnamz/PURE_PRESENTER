@@ -1,5 +1,0 @@
-# Ignore large files and build artifacts
-Video/0310.mov
-Video/7. NURSING Thai 1080.60i No subs.mp4
-dist/
-app/node_modules/electron/dist/
