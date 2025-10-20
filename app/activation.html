@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PURE PRESENTER - License Activation</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .activation-container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    .logo-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo-section h1 {
+      color: #667eea;
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .logo-section p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .status-section {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .status-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+
+    .status-icon.warning { color: #f39c12; }
+    .status-icon.error { color: #e74c3c; }
+    .status-icon.success { color: #27ae60; }
+
+    .status-message {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .status-details {
+      font-size: 14px;
+      color: #666;
+      margin-top: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #333;
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-group input::placeholder {
+      text-transform: none;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #d0d0d0;
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .success-message {
+      background: #efe;
+      color: #363;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .info-box {
+      background: #e8f4f8;
+      border-left: 4px solid #3498db;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #2c3e50;
+    }
+
+    .license-info {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      font-size: 13px;
+    }
+
+    .license-info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .license-info-row:last-child {
+      border-bottom: none;
+    }
+
+    .license-info-label {
+      color: #666;
+      font-weight: 500;
+    }
+
+    .license-info-value {
+      color: #333;
+      font-weight: 600;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="activation-container">
+    <div class="logo-section">
+      <h1>🎵 PURE PRESENTER</h1>
+    </div>
+
+    <!-- Status Section -->
+    <div class="status-section" id="statusSection">
+      <div class="status-icon" id="statusIcon">⚠️</div>
+      <div class="status-message" id="statusMessage">Checking license status...</div>
+      <div class="status-details" id="statusDetails"></div>
+    </div>
+
+    <!-- Activation Form -->
+    <div id="activationForm">
+      <div class="info-box">
+        <strong>📋 Activation Required:</strong><br>
+        Please enter the license key provided by Songnam Saraphai to activate PURE PRESENTER.
+      </div>
+      <div class="info-box">
+        <strong>📋 Contact:</strong><br>
+        Email: songnam@apiu.edu
+        Phone: 061-580-2547
+      </div>
+
+      <div class="form-group">
+        <label for="licenseKey">License Key:</label>
+        <input 
+          type="text" 
+          id="licenseKey" 
+          placeholder="Enter your license key"
+          maxlength="50"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="customerInfo">Customer Name (Optional):</label>
+        <input 
+          type="text" 
+          id="customerInfo" 
+          placeholder="Church or organization name"
+        >
+      </div>
+
+      <div class="button-group">
+        <button class="btn-primary" id="activateBtn">Activate License</button>
+        <button class="btn-secondary" id="cancelBtn">Exit</button>
+      </div>
+
+      <div class="error-message" id="errorMessage"></div>
+      <div class="success-message" id="successMessage"></div>
+    </div>
+
+    <!-- License Info (shown when already activated) -->
+    <div id="licenseInfo" class="hidden">
+      <div class="license-info">
+        <div class="license-info-row">
+          <span class="license-info-label">Customer ID:</span>
+          <span class="license-info-value" id="infoCustomer">-</span>
+        </div>
+        <div class="license-info-row">
+          <span class="license-info-label">Activated Date:</span>
+          <span class="license-info-value" id="infoActivated">-</span>
+        </div>
+        <div class="license-info-row">
+          <span class="license-info-label">Expiry Date:</span>
+          <span class="license-info-value" id="infoExpiry">-</span>
+        </div>
+        <div class="license-info-row">
+          <span class="license-info-label">Days Remaining:</span>
+          <span class="license-info-value" id="infoDays">-</span>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-primary" id="continueBtn">Continue</button>
+        <button class="btn-danger" id="deactivateBtn">Deactivate</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    const license = require('./license');
+
+    // DOM elements
+    const statusIcon = document.getElementById('statusIcon');
+    const statusMessage = document.getElementById('statusMessage');
+    const statusDetails = document.getElementById('statusDetails');
+    const activationForm = document.getElementById('activationForm');
+    const licenseInfo = document.getElementById('licenseInfo');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+
+    // Check license status on load
+    function checkLicenseStatus() {
+      const result = license.checkLicense();
+      
+      if (result.isValid) {
+        // License is active
+        if (result.status === 'EXPIRING_SOON') {
+          statusIcon.textContent = '⚠️';
+          statusIcon.className = 'status-icon warning';
+        } else {
+          statusIcon.textContent = '✅';
+          statusIcon.className = 'status-icon success';
+        }
+        statusMessage.textContent = result.message;
+        statusDetails.textContent = `Valid until ${result.expiryDate.toLocaleDateString()}`;
+        
+        // Show license info
+        activationForm.classList.add('hidden');
+        licenseInfo.classList.remove('hidden');
+        
+        // Populate license info
+        document.getElementById('infoCustomer').textContent = result.customer;
+        document.getElementById('infoActivated').textContent = new Date(result.activatedDate).toLocaleDateString();
+        document.getElementById('infoExpiry').textContent = result.expiryDate.toLocaleDateString();
+        document.getElementById('infoDays').textContent = result.daysRemaining + ' days';
+        
+        // If expiring soon, show warning
+        if (result.status === 'EXPIRING_SOON') {
+          statusDetails.innerHTML += '<br><strong style="color: #f39c12;">⚠️ Please renew your license soon!</strong>';
+        }
+      } else {
+        // License is invalid, expired, or not found
+        if (result.status === 'EXPIRED') {
+          statusIcon.textContent = '❌';
+          statusIcon.className = 'status-icon error';
+          statusMessage.textContent = 'License Expired';
+          statusDetails.textContent = result.message;
+        } else {
+          statusIcon.textContent = '🔒';
+          statusIcon.className = 'status-icon error';
+          statusMessage.textContent = 'License Required';
+        }
+        
+        // Show activation form
+        activationForm.classList.remove('hidden');
+        licenseInfo.classList.add('hidden');
+      }
+    }
+
+    // Activate button
+    document.getElementById('activateBtn').addEventListener('click', () => {
+      const licenseKey = document.getElementById('licenseKey').value.trim().toUpperCase();
+      const customerInfo = document.getElementById('customerInfo').value.trim();
+      
+      if (!licenseKey) {
+        showError('Please enter a license key');
+        return;
+      }
+      
+      // Attempt activation
+      const result = license.activateLicense(licenseKey, customerInfo);
+      
+      if (result.success) {
+        showSuccess('License activated successfully! Restarting application...');
+        setTimeout(() => {
+          ipcRenderer.send('license-activated');
+        }, 1500);
+      } else {
+        showError(result.message);
+      }
+    });
+
+    // Continue button (when already activated)
+    document.getElementById('continueBtn').addEventListener('click', () => {
+      ipcRenderer.send('license-activated');
+    });
+
+    // Cancel/Exit button
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+      ipcRenderer.send('license-cancelled');
+    });
+
+    // Deactivate button
+    document.getElementById('deactivateBtn').addEventListener('click', () => {
+      if (confirm('Are you sure you want to deactivate this license?\n\nYou will need to enter a new license key to use the application.')) {
+        license.deleteLicense();
+        showSuccess('License deactivated. Please enter a new license key.');
+        setTimeout(() => {
+          checkLicenseStatus();
+        }, 1000);
+      }
+    });
+
+    // Allow Enter key to activate
+    document.getElementById('licenseKey').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('activateBtn').click();
+      }
+    });
+
+    // Helper functions
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+      successMessage.style.display = 'none';
+      setTimeout(() => {
+        errorMessage.style.display = 'none';
+      }, 5000);
+    }
+
+    function showSuccess(message) {
+      successMessage.textContent = message;
+      successMessage.style.display = 'block';
+      errorMessage.style.display = 'none';
+    }
+
+    // Initialize
+    checkLicenseStatus();
+  </script>
+</body>
+</html>

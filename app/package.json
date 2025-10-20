@@ -1,0 +1,13 @@
+{
+  "name": "church-lyrics",
+  "version": "1.0.0",
+  "description": "Church Hymnal Presentation App",
+  "author": "Songnam Saraphai",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron-reload": "^2.0.0-alpha.1"
+  }
+}

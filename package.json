@@ -1,0 +1,60 @@
+{
+  "name": "churchhymnalapp",
+  "version": "1.0.0",
+  "description": "Pure Presenter - Presentation App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron app/main.js",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "package": "electron-packager . \"PURE PRESENTER\" --platform=win32 --arch=x64 --out=dist --overwrite --icon=assets/AIUCHURCH.ico",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Songnam Saraphai",
+  "license": "ISC",
+  "build": {
+    "appId": "com.churchhymnal.app",
+    "productName": "PURE PRESENTER",
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/AIUCHURCH.ico",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PURE PRESENTER",
+      "installerIcon": "assets/AIUCHURCH.ico",
+      "uninstallerIcon": "assets/AIUCHURCH.ico",
+      "installerHeaderIcon": "assets/AIUCHURCH.ico"
+    },
+    "files": [
+      "**/*",
+      "!dist",
+      "!.git",
+      "!node_modules/electron-builder"
+    ],
+    "directories": {
+      "output": "dist",
+      "app": "."
+    }
+  },
+  "dependencies": {
+    "electron-reload": "^2.0.0-alpha.1",
+    "officeparser": "^5.2.1"
+  },
+  "devDependencies": {
+    "electron": "^38.3.0",
+    "electron-builder": "^26.0.12",
+    "electron-packager": "^17.1.2"
+  }
+}

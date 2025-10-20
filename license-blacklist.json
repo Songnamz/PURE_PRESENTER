@@ -1,0 +1,32 @@
+﻿{
+    "revokedKeys":  [
+                        {
+                            "key":  "AIUCHURCH-20261019-8CF88E6A5484F8C2",
+                            "customer":  "AIUCHURCH",
+                            "reason":  "Test revocation",
+                            "revokedDate":  "2025-10-19T15:30:00.000Z"
+                        },
+                        {
+                            "revokedDate":  "2025-10-19T01:55:53.202Z",
+                            "key":  "KEYTEST-20261119-B0BBCA44F9E40C36",
+                            "customer":  "KEYTEST",
+                            "reason":  "test"
+                        },
+                        {
+                            "revokedDate":  "2025-10-19T02:42:18.431Z",
+                            "key":  "TESTINGKEY-20261019-4AE9158DF5038001",
+                            "customer":  "TESTINGKEY",
+                            "reason":  "License revoked by administrator"
+                        },
+                        {
+                            "revokedDate":  "2025-10-19T02:43:50.184Z",
+                            "key":  "SONGNAM-20261019-C2140C4A41F45399",
+                            "customer":  "SONGNAM",
+                            "reason":  "License revoked by administrator"
+                        }
+                    ],
+    "revokedCustomers":  [
+
+                         ],
+    "lastUpdated":  "2025-10-19T02:43:50.187Z"
+}

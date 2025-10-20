@@ -1,0 +1,85 @@
+[
+  {
+    "type": "title",
+    "titleText": "สุขสันต์วันสะบาโต",
+    "titleSubtitle": "",
+    "service": "thai-church"
+  },
+  {
+    "name": "สามารถ สารภัย",
+    "position": "อธิษฐานเปิด",
+    "title": "",
+    "service": "thai-church"
+  },
+  {
+    "type": "normal",
+    "name": "Saw Tar Nge",
+    "position": "Offering",
+    "title": "",
+    "service": "thai-church"
+  },
+  {
+    "name": "Songphol Saraphai",
+    "position": "Special Song",
+    "title": "Thank You Lord",
+    "service": "thai-church"
+  },
+  {
+    "type": "bible",
+    "verseText": "เพราะว่าพระเจ้าทรงรักโลกจนได้ประทานพระบุตรองค์เดียวของพระองค์ เพื่อทุกคนที่เชื่อในพระบุตรนั้นจะไม่พินาศแต่มีชีวิตนิรันดร์",
+    "reference": "ยอห์น 3:16",
+    "service": "thai-church"
+  },
+  {
+    "type": "normal",
+    "name": "ทรงนำ สารภัย",
+    "position": "พระธรรมเทศนา",
+    "title": "พระผู้สร้าง",
+    "service": "thai-church"
+  },
+  {
+    "type": "title",
+    "titleText": "Happy Sabbath",
+    "titleSubtitle": "",
+    "service": "inter-church"
+  },
+  {
+    "type": "normal",
+    "name": "Thanawat",
+    "position": "Special Song",
+    "title": "",
+    "service": "inter-church"
+  },
+  {
+    "type": "bible",
+    "verseText": "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life",
+    "reference": "John 3:16",
+    "service": "inter-church"
+  },
+  {
+    "type": "normal",
+    "name": "Songnam Saraphai",
+    "position": "Sermon",
+    "title": "The Love of God",
+    "service": "inter-church"
+  },
+  {
+    "type": "title",
+    "titleText": "Vespers",
+    "titleSubtitle": "",
+    "service": "vespers"
+  },
+  {
+    "type": "normal",
+    "name": "Songnam Saraphai",
+    "position": "Special Song",
+    "title": "",
+    "service": "vespers"
+  },
+  {
+    "type": "title",
+    "titleText": "Combined Sabbath Worship Service",
+    "titleSubtitle": "",
+    "service": "combined-church"
+  }
+]

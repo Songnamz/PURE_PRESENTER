@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      /* Custom Scrollbar Styling */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1a1a1a;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #7a8ef5 0%, #8659b3 100%);
+      }
+      
+      body {
+        background: #111;
+        color: white;
+        font-family: sans-serif;
+        padding: 20px;
+        margin: 0;
+      }
+      .folder {
+        margin-bottom: 15px;
+        background: #1a1a1a;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #333;
+      }
+      .folder-header {
+        padding: 12px 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: bold;
+        font-size: 16px;
+        user-select: none;
+      }
+      .folder-header:hover {
+        background: linear-gradient(135deg, #7a8ef5 0%, #8659b3 100%);
+      }
+      .folder-icon {
+        font-size: 20px;
+        transition: transform 0.3s ease;
+      }
+      .folder-icon.collapsed {
+        transform: rotate(-90deg);
+      }
+      .folder-content {
+        padding: 10px;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      .folder-content.collapsed {
+        display: none;
+      }
+      input[type="text"] {
+        width: calc(100% - 20px);
+        padding: 8px;
+        margin-bottom: 10px;
+        background: #222;
+        color: white;
+        border: 1px solid #444;
+        border-radius: 4px;
+      }
+      .list-item {
+        cursor: pointer;
+        padding: 10px;
+        margin: 2px 0;
+        background: #222;
+        border-radius: 4px;
+        border-left: 3px solid #555;
+        transition: all 0.2s ease;
+      }
+      .list-item:hover {
+        background: #333;
+        border-left-color: #667eea;
+      }
+      .btn {
+        padding: 10px 16px;
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        margin-bottom: 10px;
+        width: 100%;
+        transition: all 0.3s ease;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      }
+      .service-form {
+        background: #222;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 10;
+      }
+      .service-form input {
+        width: calc(100% - 20px);
+        padding: 8px;
+        margin: 5px 0;
+        background: #2a2a2a;
+        color: white;
+        border: 1px solid #444;
+        border-radius: 4px;
+      }
+      .service-form button {
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 8px;
+        position: relative;
+        z-index: 100;
+        pointer-events: auto;
+      }
+      .service-slide {
+        background: #2a2a2a;
+        padding: 12px;
+        margin: 5px 0;
+        border-radius: 4px;
+        border-left: 3px solid #667eea;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+      }
+      .service-slide:hover {
+        background: #333;
+      }
+      .service-slide.dragging {
+        opacity: 0.4;
+      }
+      .church-service-folder.dragging {
+        opacity: 0.4;
+      }
+      .drag-handle {
+        cursor: move !important;
+        padding: 0 8px;
+        color: #999;
+        font-size: 18px;
+      }
+      .drag-handle:hover {
+        color: #667eea;
+      }
+      .service-slide-text {
+        flex: 1;
+      }
+      .service-slide-name {
+        font-weight: bold;
+        color: #a8e063;
+      }
+      .service-slide-position {
+        color: #aaa;
+        font-size: 13px;
+      }
+      .service-slide-title {
+        color: #f2c94c;
+        font-size: 12px;
+        font-style: italic;
+        margin-top: 2px;
+      }
+      .edit-btn {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .edit-btn:hover {
+        background: #2980b9;
+      }
+      .duplicate-btn {
+        background: #9b59b6;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .duplicate-btn:hover {
+        background: #8e44ad;
+      }
+      .delete-btn {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .delete-btn:hover {
+        background: #c0392b;
+      }
+      .copyright-footer {
+        position: fixed;
+        bottom: 10px;
+        right: 15px;
+        font-size: 10px;
+        color: #999;
+        font-style: italic;
+        z-index: 1000;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 style="margin-top:0;">📂 Projects</h2>
+    
+    <!-- Add Main Folder Button -->
+    <div style="text-align:right; margin-bottom:15px;">
+      <button onclick="showAddFolderDialog()" style="background:linear-gradient(135deg, #100cdd 0%, #30d8ee 100%); color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">
+        +
+      </button>
+    </div>
+    
+    <!-- Add Main Folder Dialog -->
+    <div id="add-folder-dialog" style="display:none; padding:15px; background:#222; border-radius:5px; margin-bottom:15px; border:1px solid #444;">
+      <h4 style="margin:0 0 10px 0; color:#f093fb;">Create Main Folder</h4>
+      <input type="text" id="new-folder-name" placeholder="Folder name" style="width:calc(100% - 20px); padding:8px; margin-bottom:10px; border-radius:4px; border:1px solid #444; background:#111; color:white;" />
+      <div style="display:flex; gap:10px;">
+        <button class="btn" onclick="createMainFolder()" style="background:#f093fb;">Create</button>
+        <button class="btn" onclick="hideAddFolderDialog()" style="background:#666;">Cancel</button>
+      </div>
+    </div>
+    
+    <!-- Service Folder -->
+    <div class="folder">
+      <div class="folder-header" onclick="toggleFolder('service')">
+        <span class="folder-icon" id="service-icon">📁</span>
+        <span>Service</span>
+      </div>
+      <div class="folder-content collapsed" id="service-content">
+        
+        <!-- Add Church Service Button -->
+        <div style="text-align:right; padding:10px 15px 5px 15px;">
+          <button onclick="showAddSubfolderDialog()" style="background:linear-gradient(135deg, #9fd884 0%, #f4f5f3 100%); color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">
+            ➕
+          </button>
+        </div>
+        
+        <!-- Add Subfolder Dialog -->
+        <div id="add-subfolder-dialog" style="display:none; padding:15px; background:#222; border-radius:5px; margin:10px 15px; border:1px solid #444;">
+          <h4 style="margin:0 0 10px 0; color:#667eea;">Create Service</h4>
+          <input type="text" id="new-subfolder-name" placeholder="Service name" style="width:calc(100% - 20px); padding:8px; margin-bottom:10px; border-radius:4px; border:1px solid #444; background:#111; color:white;" />
+          <label style="display:block; margin-bottom:10px; color:#aaa;">Choose Color Gradient:</label>
+          <select id="subfolder-color" style="width:100%; padding:8px; margin-bottom:10px; border-radius:4px; border:1px solid #444; background:#111; color:white;">
+            <option value="green">Green (Default)</option>
+            <option value="purple">Purple</option>
+            <option value="pink">Pink</option>
+            <option value="orange">Orange</option>
+            <option value="teal">Teal</option>
+            <option value="blue">Blue</option>
+            <option value="red">Red</option>
+          </select>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" onclick="createChurchService()" style="background:#667eea;">Create</button>
+            <button class="btn" onclick="hideAddSubfolderDialog()" style="background:#666;">Cancel</button>
+          </div>
+        </div>
+        
+        <div id="church-services-container">
+          <!-- Thai Church -->
+          <div class="church-service-folder" draggable="true" data-service="thai-church">
+            <div class="folder" style="margin:10px 0; border:1px solid #444;">
+              <div class="folder-header" onclick="toggleFolder('thai-church')" style="background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%); cursor:move;">
+                <span class="folder-icon" id="thai-church-icon">📁</span>
+                <span>Thai Church</span>
+                <button onclick="event.stopPropagation(); deleteChurchService('thai-church')" style="margin-left:auto; background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️</button>
+                <span style="font-size:12px; opacity:0.7; margin-left:5px;">⋮⋮</span>
+              </div>
+              <div class="folder-content collapsed" id="thai-church-content">
+                <button class="btn" onclick="showSlideTypeSelection('thai-church')">➕ Add Slide</button>
+                
+                <!-- Slide Type Selection -->
+                <div id="thai-church-slide-type-selection" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Choose Slide Type</h3>
+                  <button class="btn" onclick="showTitleSlideForm('thai-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    📋 Title Slide
+                  </button>
+                  <button class="btn" onclick="showNormalSlideForm('thai-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    📝 Normal Slide
+                  </button>
+                  <button class="btn" onclick="showBibleVerseForm('thai-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
+                    📖 Bible Verse
+                  </button>
+                  <button class="btn" onclick="hideSlideTypeSelection('thai-church')" style="width:100%; background:#666;">
+                    Cancel
+                  </button>
+                </div>
+                
+                <!-- Title Slide Form -->
+                <div id="thai-church-title-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#f093fb;">Title Slide</h3>
+                  <input type="text" id="thai-church-title-text" placeholder="Title Text (e.g., Sunday Worship Service)" />
+                  <input type="text" id="thai-church-title-subtitle" placeholder="Subtitle (Optional, e.g., October 19, 2025)" />
+                  <button type="submit" onclick="addTitleSlide('thai-church')">Add Title Slide</button>
+                  <button onclick="hideAllForms('thai-church')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Normal Slide Form -->
+                <div id="thai-church-normal-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Normal Slide</h3>
+                  <input type="text" id="thai-church-person-position" placeholder="Position/Role (e.g., Sermon, Prayer)" />
+                  <input type="text" id="thai-church-person-title" placeholder="Title (Optional, e.g., The Beginning of Life)" />
+                  <input type="text" id="thai-church-person-name" placeholder="Person Name" />
+                  <button type="submit" onclick="addNormalSlide('thai-church')">Add Slide</button>
+                  <button onclick="hideAllForms('thai-church')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Bible Verse Form -->
+                <div id="thai-church-bible-verse-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#56ab2f;">Bible Verse</h3>
+                  <textarea id="thai-church-verse-text" placeholder="Enter the verse text..." style="width:100%; height:80px; padding:8px; border-radius:5px; border:1px solid #ccc; resize:vertical; font-family:'Arial'; font-size:14px;"></textarea>
+                  <input type="text" id="thai-church-verse-reference" placeholder="Reference (e.g., John 3:16)" />
+                  <button type="submit" onclick="addBibleVerseSlide('thai-church')">Add Bible Verse</button>
+                  <button onclick="hideAllForms('thai-church')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <div id="thai-church-service-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inter Church -->
+          <div class="church-service-folder" draggable="true" data-service="inter-church">
+            <div class="folder" style="margin:10px 0; border:1px solid #444;">
+              <div class="folder-header" onclick="toggleFolder('inter-church')" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor:move;">
+                <span class="folder-icon" id="inter-church-icon">📁</span>
+                <span>Inter Church</span>
+                <button onclick="event.stopPropagation(); deleteChurchService('inter-church')" style="margin-left:auto; background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️</button>
+                <span style="font-size:12px; opacity:0.7; margin-left:5px;">⋮⋮</span>
+              </div>
+              <div class="folder-content collapsed" id="inter-church-content">
+                <button class="btn" onclick="showSlideTypeSelection('inter-church')">➕ Add Slide</button>
+                
+                <!-- Slide Type Selection -->
+                <div id="inter-church-slide-type-selection" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Choose Slide Type</h3>
+                  <button class="btn" onclick="showTitleSlideForm('inter-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    📋 Title Slide
+                  </button>
+                  <button class="btn" onclick="showNormalSlideForm('inter-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    📝 Normal Slide
+                  </button>
+                  <button class="btn" onclick="showBibleVerseForm('inter-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
+                    📖 Bible Verse
+                  </button>
+                  <button class="btn" onclick="hideSlideTypeSelection('inter-church')" style="width:100%; background:#666;">
+                    Cancel
+                  </button>
+                </div>
+                
+                <!-- Title Slide Form -->
+                <div id="inter-church-title-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#f093fb;">Title Slide</h3>
+                  <input type="text" id="inter-church-title-text" placeholder="Title Text (e.g., Sunday Worship Service)" />
+                  <input type="text" id="inter-church-title-subtitle" placeholder="Subtitle (Optional, e.g., October 19, 2025)" />
+                  <button type="submit" onclick="addTitleSlide('inter-church')">Add Title Slide</button>
+                  <button onclick="hideAllForms('inter-church')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Normal Slide Form -->
+                <div id="inter-church-normal-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Normal Slide</h3>
+                  <input type="text" id="inter-church-person-position" placeholder="Position/Role (e.g., Sermon, Prayer)" />
+                  <input type="text" id="inter-church-person-title" placeholder="Title (Optional, e.g., The Beginning of Life)" />
+                  <input type="text" id="inter-church-person-name" placeholder="Person Name" />
+                  <button type="submit" onclick="addNormalSlide('inter-church')">Add Slide</button>
+                  <button onclick="hideAllForms('inter-church')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Bible Verse Form -->
+                <div id="inter-church-bible-verse-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#56ab2f;">Bible Verse</h3>
+                  <textarea id="inter-church-verse-text" placeholder="Enter the verse text..." style="width:100%; height:80px; padding:8px; border-radius:5px; border:1px solid #ccc; resize:vertical; font-family:'Arial'; font-size:14px;"></textarea>
+                  <input type="text" id="inter-church-verse-reference" placeholder="Reference (e.g., John 3:16)" />
+                  <button type="submit" onclick="addBibleVerseSlide('inter-church')">Add Bible Verse</button>
+                  <button onclick="hideAllForms('inter-church')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <div id="inter-church-service-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vespers -->
+          <div class="church-service-folder" draggable="true" data-service="vespers">
+            <div class="folder" style="margin:10px 0; border:1px solid #444;">
+              <div class="folder-header" onclick="toggleFolder('vespers')" style="background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%); cursor:move;">
+                <span class="folder-icon" id="vespers-icon">📁</span>
+                <span>Vespers</span>
+                <button onclick="event.stopPropagation(); deleteChurchService('vespers')" style="margin-left:auto; background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️</button>
+                <span style="font-size:12px; opacity:0.7; margin-left:5px;">⋮⋮</span>
+              </div>
+              <div class="folder-content collapsed" id="vespers-content">
+                <button class="btn" onclick="showSlideTypeSelection('vespers')">➕ Add Slide</button>
+                
+                <!-- Slide Type Selection -->
+                <div id="vespers-slide-type-selection" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Choose Slide Type</h3>
+                  <button class="btn" onclick="showTitleSlideForm('vespers')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    📋 Title Slide
+                  </button>
+                  <button class="btn" onclick="showNormalSlideForm('vespers')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    📝 Normal Slide
+                  </button>
+                  <button class="btn" onclick="showBibleVerseForm('vespers')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
+                    📖 Bible Verse
+                  </button>
+                  <button class="btn" onclick="hideSlideTypeSelection('vespers')" style="width:100%; background:#666;">
+                    Cancel
+                  </button>
+                </div>
+                
+                <!-- Title Slide Form -->
+                <div id="vespers-title-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#f093fb;">Title Slide</h3>
+                  <input type="text" id="vespers-title-text" placeholder="Title Text (e.g., Sunday Worship Service)" />
+                  <input type="text" id="vespers-title-subtitle" placeholder="Subtitle (Optional, e.g., October 19, 2025)" />
+                  <button type="submit" onclick="addTitleSlide('vespers')">Add Title Slide</button>
+                  <button onclick="hideAllForms('vespers')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Normal Slide Form -->
+                <div id="vespers-normal-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Normal Slide</h3>
+                  <input type="text" id="vespers-person-position" placeholder="Position/Role (e.g., Sermon, Prayer)" />
+                  <input type="text" id="vespers-person-title" placeholder="Title (Optional, e.g., The Beginning of Life)" />
+                  <input type="text" id="vespers-person-name" placeholder="Person Name" />
+                  <button type="submit" onclick="addNormalSlide('vespers')">Add Slide</button>
+                  <button onclick="hideAllForms('vespers')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Bible Verse Form -->
+                <div id="vespers-bible-verse-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#56ab2f;">Bible Verse</h3>
+                  <textarea id="vespers-verse-text" placeholder="Enter the verse text..." style="width:100%; height:80px; padding:8px; border-radius:5px; border:1px solid #ccc; resize:vertical; font-family:'Arial'; font-size:14px;"></textarea>
+                  <input type="text" id="vespers-verse-reference" placeholder="Reference (e.g., John 3:16)" />
+                  <button type="submit" onclick="addBibleVerseSlide('vespers')">Add Bible Verse</button>
+                  <button onclick="hideAllForms('vespers')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <div id="vespers-service-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chapel -->
+          <div class="church-service-folder" draggable="true" data-service="chapel">
+            <div class="folder" style="margin:10px 0; border:1px solid #444;">
+              <div class="folder-header" onclick="toggleFolder('chapel')" style="background:linear-gradient(135deg, #fa709a 0%, #fee140 100%); cursor:move;">
+                <span class="folder-icon" id="chapel-icon">📁</span>
+                <span>Chapel</span>
+                <button onclick="event.stopPropagation(); deleteChurchService('chapel')" style="margin-left:auto; background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️</button>
+                <span style="font-size:12px; opacity:0.7; margin-left:5px;">⋮⋮</span>
+              </div>
+              <div class="folder-content collapsed" id="chapel-content">
+                <button class="btn" onclick="showSlideTypeSelection('chapel')">➕ Add Slide</button>
+                
+                <!-- Slide Type Selection -->
+                <div id="chapel-slide-type-selection" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Choose Slide Type</h3>
+                  <button class="btn" onclick="showTitleSlideForm('chapel')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    📋 Title Slide
+                  </button>
+                  <button class="btn" onclick="showNormalSlideForm('chapel')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    📝 Normal Slide
+                  </button>
+                  <button class="btn" onclick="showBibleVerseForm('chapel')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
+                    📖 Bible Verse
+                  </button>
+                  <button class="btn" onclick="hideSlideTypeSelection('chapel')" style="width:100%; background:#666;">
+                    Cancel
+                  </button>
+                </div>
+                
+                <!-- Title Slide Form -->
+                <div id="chapel-title-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#f093fb;">Title Slide</h3>
+                  <input type="text" id="chapel-title-text" placeholder="Title Text (e.g., Sunday Worship Service)" />
+                  <input type="text" id="chapel-title-subtitle" placeholder="Subtitle (Optional, e.g., October 19, 2025)" />
+                  <button type="submit" onclick="addTitleSlide('chapel')">Add Title Slide</button>
+                  <button onclick="hideAllForms('chapel')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Normal Slide Form -->
+                <div id="chapel-normal-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Normal Slide</h3>
+                  <input type="text" id="chapel-person-position" placeholder="Position/Role (e.g., Sermon, Prayer)" />
+                  <input type="text" id="chapel-person-title" placeholder="Title (Optional, e.g., The Beginning of Life)" />
+                  <input type="text" id="chapel-person-name" placeholder="Person Name" />
+                  <button type="submit" onclick="addNormalSlide('chapel')">Add Slide</button>
+                  <button onclick="hideAllForms('chapel')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Bible Verse Form -->
+                <div id="chapel-bible-verse-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#56ab2f;">Bible Verse</h3>
+                  <textarea id="chapel-verse-text" placeholder="Enter the verse text..." style="width:100%; height:80px; padding:8px; border-radius:5px; border:1px solid #ccc; resize:vertical; font-family:'Arial'; font-size:14px;"></textarea>
+                  <input type="text" id="chapel-verse-reference" placeholder="Reference (e.g., John 3:16)" />
+                  <button type="submit" onclick="addBibleVerseSlide('chapel')">Add Bible Verse</button>
+                  <button onclick="hideAllForms('chapel')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <div id="chapel-service-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assembly -->
+          <div class="church-service-folder" draggable="true" data-service="assembly">
+            <div class="folder" style="margin:10px 0; border:1px solid #444;">
+              <div class="folder-header" onclick="toggleFolder('assembly')" style="background:linear-gradient(135deg, #30cfd0 0%, #330867 100%); cursor:move;">
+                <span class="folder-icon" id="assembly-icon">📁</span>
+                <span>Assembly</span>
+                <button onclick="event.stopPropagation(); deleteChurchService('assembly')" style="margin-left:auto; background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️</button>
+                <span style="font-size:12px; opacity:0.7; margin-left:5px;">⋮⋮</span>
+              </div>
+              <div class="folder-content collapsed" id="assembly-content">
+                <button class="btn" onclick="showSlideTypeSelection('assembly')">➕ Add Slide</button>
+                
+                <!-- Slide Type Selection -->
+                <div id="assembly-slide-type-selection" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Choose Slide Type</h3>
+                  <button class="btn" onclick="showTitleSlideForm('assembly')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    📋 Title Slide
+                  </button>
+                  <button class="btn" onclick="showNormalSlideForm('assembly')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    📝 Normal Slide
+                  </button>
+                  <button class="btn" onclick="showBibleVerseForm('assembly')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
+                    📖 Bible Verse
+                  </button>
+                  <button class="btn" onclick="hideSlideTypeSelection('assembly')" style="width:100%; background:#666;">
+                    Cancel
+                  </button>
+                </div>
+                
+                <!-- Title Slide Form -->
+                <div id="assembly-title-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#f093fb;">Title Slide</h3>
+                  <input type="text" id="assembly-title-text" placeholder="Title Text (e.g., Sunday Worship Service)" />
+                  <input type="text" id="assembly-title-subtitle" placeholder="Subtitle (Optional, e.g., October 19, 2025)" />
+                  <button type="submit" onclick="addTitleSlide('assembly')">Add Title Slide</button>
+                  <button onclick="hideAllForms('assembly')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Normal Slide Form -->
+                <div id="assembly-normal-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Normal Slide</h3>
+                  <input type="text" id="assembly-person-position" placeholder="Position/Role (e.g., Sermon, Prayer)" />
+                  <input type="text" id="assembly-person-title" placeholder="Title (Optional, e.g., The Beginning of Life)" />
+                  <input type="text" id="assembly-person-name" placeholder="Person Name" />
+                  <button type="submit" onclick="addNormalSlide('assembly')">Add Slide</button>
+                  <button onclick="hideAllForms('assembly')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Bible Verse Form -->
+                <div id="assembly-bible-verse-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#56ab2f;">Bible Verse</h3>
+                  <textarea id="assembly-verse-text" placeholder="Enter the verse text..." style="width:100%; height:80px; padding:8px; border-radius:5px; border:1px solid #ccc; resize:vertical; font-family:'Arial'; font-size:14px;"></textarea>
+                  <input type="text" id="assembly-verse-reference" placeholder="Reference (e.g., John 3:16)" />
+                  <button type="submit" onclick="addBibleVerseSlide('assembly')">Add Bible Verse</button>
+                  <button onclick="hideAllForms('assembly')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <div id="assembly-service-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    <!-- Thai Folder -->
+    <div class="folder">
+      <div class="folder-header" onclick="toggleFolder('thai')">
+        <span class="folder-icon" id="thai-icon">📁</span>
+        <span>Thai Hymnal</span>
+      </div>
+      <div class="folder-content collapsed" id="thai-content">
+        <input type="text" id="thai-search" placeholder="Search Thai songs..." />
+        <div id="thai-songs"></div>
+      </div>
+    </div>
+
+    <!-- Thai-English Folder -->
+    <div class="folder">
+      <div class="folder-header" onclick="toggleFolder('hymnal')">
+        <span class="folder-icon" id="hymnal-icon">📁</span>
+        <span>Thai-English Hymnal</span>
+      </div>
+      <div class="folder-content collapsed" id="hymnal-content">
+        <input type="text" id="search" placeholder="Search songs..." />
+        <div id="songs"></div>
+      </div>
+    </div>
+
+    <!-- English Folder -->
+    <div class="folder">
+      <div class="folder-header" onclick="toggleFolder('english')">
+        <span class="folder-icon" id="english-icon">📁</span>
+        <span>English Hymnal</span>
+      </div>
+      <div class="folder-content collapsed" id="english-content">
+        <input type="text" id="english-search" placeholder="Search English songs..." />
+        <div id="english-songs"></div>
+      </div>
+    </div>
+
+    <!-- Presentations Folder -->
+    <div class="folder">
+      <div class="folder-header" onclick="toggleFolder('presentations')">
+        <span class="folder-icon" id="presentations-icon">📁</span>
+        <span>Presentations</span>
+      </div>
+      <div class="folder-content collapsed" id="presentations-content">
+        <button class="btn" onclick="importPowerPoint()">📥 Import PowerPoint</button>
+        <input type="text" id="presentations-search" placeholder="Search presentations..." />
+        <div id="presentations-list"></div>
+      </div>
+    </div>
+
+    <!-- MP3 Audio Folder -->
+    <div class="folder">
+      <div class="folder-header" onclick="toggleFolder('audio')">
+        <span class="folder-icon" id="audio-icon">📁</span>
+        <span>MP3 Audio</span>
+      </div>
+      <div class="folder-content collapsed" id="audio-content">
+        <button class="btn" onclick="importMP3()">📥 Import MP3</button>
+        <div id="audio-player-container" style="margin:10px 0; padding:10px; background:#222; border-radius:4px; display:none;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <span id="now-playing" style="flex:1; font-weight:bold; color:#667eea;">No audio playing</span>
+          </div>
+          <audio id="audio-player" controls style="width:100%; margin-bottom:10px;"></audio>
+          <div style="display:flex; gap:5px;">
+            <button class="btn" onclick="playAudio()" style="flex:1; background:#28a745;">▶️ Play</button>
+            <button class="btn" onclick="pauseAudio()" style="flex:1; background:#ffc107;">⏸️ Pause</button>
+            <button class="btn" onclick="stopAudio()" style="flex:1; background:#dc3545;">⏹️ Stop</button>
+          </div>
+        </div>
+        <input type="text" id="audio-search" placeholder="Search audio files..." oninput="filterAudioFiles()" />
+        <div id="audio-list"></div>
+      </div>
+    </div>
+
+    <!-- Video Folder -->
+    <div class="folder">
+      <div class="folder-header" onclick="toggleFolder('video')">
+        <span class="folder-icon" id="video-icon">📁</span>
+        <span>Video</span>
+      </div>
+      <div class="folder-content collapsed" id="video-content">
+        <button class="btn" onclick="importVideo()">📥 Import Video</button>
+        <div id="video-player-container" style="margin:10px 0; padding:10px; background:#222; border-radius:4px; display:none;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <span id="now-playing-video" style="flex:1; font-weight:bold; color:#667eea;">No video playing</span>
+          </div>
+          <div style="display:flex; gap:5px;">
+            <button class="btn" onclick="playVideo()" style="flex:1; background:#28a745;">▶️ Play</button>
+            <button class="btn" onclick="pauseVideo()" style="flex:1; background:#ffc107;">⏸️ Pause</button>
+            <button class="btn" onclick="stopVideo()" style="flex:1; background:#dc3545;">⏹️ Stop</button>
+          </div>
+        </div>
+        <input type="text" id="video-search" placeholder="Search video files..." oninput="filterVideoFiles()" />
+        <div id="video-list"></div>
+      </div>
+    </div>
+
+    <!-- Images Folder -->
+    <div class="folder">
+      <div class="folder-header" onclick="toggleFolder('images')">
+        <span class="folder-icon" id="images-icon">📁</span>
+        <span>Images</span>
+      </div>
+      <div class="folder-content collapsed" id="images-content">
+        <button class="btn" onclick="importImages()">📥 Import Images</button>
+        <input type="text" id="images-search" placeholder="Search images..." oninput="filterImages()" />
+        <div id="images-list"></div>
+      </div>
+    </div>
+
+    <script>
+      const { ipcRenderer } = require('electron');
+      let allSongs = [];
+      let serviceSlides = [];
+      let currentChurchService = 'thai-church'; // Track which service is active
+
+      // Load service slides from file
+      async function loadServiceSlides() {
+        serviceSlides = await ipcRenderer.invoke('get-service-slides');
+        
+        // Migrate old slides without service property to thai-church
+        serviceSlides = serviceSlides.map(slide => {
+          if (!slide.service) {
+            slide.service = 'thai-church';
+          }
+          return slide;
+        });
+        
+        displayAllServiceSlides();
+      }
+
+      // Save service slides to file
+      async function saveServiceSlides() {
+        await ipcRenderer.invoke('save-service-slides', serviceSlides);
+      }
+
+      // Display slides for all church services
+      function displayAllServiceSlides() {
+        // Get all service IDs from the DOM (both hardcoded and custom)
+        const serviceFolders = document.querySelectorAll('.church-service-folder');
+        const services = Array.from(serviceFolders).map(folder => folder.dataset.service);
+        
+        services.forEach(service => {
+          displayServiceSlides(service);
+        });
+      }
+
+      // Folder toggle functionality
+      function toggleFolder(folderName) {
+        const content = document.getElementById(`${folderName}-content`);
+        const icon = document.getElementById(`${folderName}-icon`);
+        content.classList.toggle('collapsed');
+        icon.classList.toggle('collapsed');
+        icon.textContent = content.classList.contains('collapsed') ? '📁' : '📂';
+      }
+
+      // Service slides functionality
+      function showSlideTypeSelection(churchService) {
+        console.log('showSlideTypeSelection called for:', churchService);
+        currentChurchService = churchService;
+        const element = document.getElementById(`${churchService}-slide-type-selection`);
+        console.log('Element found:', element);
+        if (element) {
+          element.style.display = 'block';
+        } else {
+          console.error('Slide type selection element not found for:', churchService);
+        }
+      }
+
+      function hideSlideTypeSelection(churchService) {
+        document.getElementById(`${churchService}-slide-type-selection`).style.display = 'none';
+      }
+
+      function showNormalSlideForm(churchService) {
+        hideSlideTypeSelection(churchService);
+        document.getElementById(`${churchService}-normal-slide-form`).style.display = 'block';
+      }
+
+      function showTitleSlideForm(churchService) {
+        hideSlideTypeSelection(churchService);
+        document.getElementById(`${churchService}-title-slide-form`).style.display = 'block';
+      }
+
+      function showBibleVerseForm(churchService) {
+        hideSlideTypeSelection(churchService);
+        document.getElementById(`${churchService}-bible-verse-form`).style.display = 'block';
+      }
+
+      function hideAllForms(churchService) {
+        document.getElementById(`${churchService}-slide-type-selection`).style.display = 'none';
+        document.getElementById(`${churchService}-normal-slide-form`).style.display = 'none';
+        document.getElementById(`${churchService}-title-slide-form`).style.display = 'none';
+        document.getElementById(`${churchService}-bible-verse-form`).style.display = 'none';
+        // Clear form fields
+        document.getElementById(`${churchService}-person-name`).value = '';
+        document.getElementById(`${churchService}-person-position`).value = '';
+        document.getElementById(`${churchService}-person-title`).value = '';
+        document.getElementById(`${churchService}-title-text`).value = '';
+        document.getElementById(`${churchService}-title-subtitle`).value = '';
+        document.getElementById(`${churchService}-verse-text`).value = '';
+        document.getElementById(`${churchService}-verse-reference`).value = '';
+        
+        // Scroll back to the edited slide if canceling edit
+        const wasEditing = editingIndex >= 0;
+        editingIndex = -1;
+        
+        if (wasEditing && editingSlideElement) {
+          setTimeout(() => {
+            editingSlideElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            editingSlideElement = null;
+          }, 100);
+        }
+        
+        const submitBtn = document.querySelector(`#${churchService}-normal-slide-form button[type="submit"]`);
+        if (submitBtn) submitBtn.textContent = 'Add Slide';
+      }
+
+      let editingIndex = -1; // Track which slide is being edited
+      let editingSlideElement = null; // Track the slide element being edited
+
+      function addNormalSlide(churchService) {
+        console.log('addNormalSlide called for:', churchService);
+        
+        const nameElement = document.getElementById(`${churchService}-person-name`);
+        const positionElement = document.getElementById(`${churchService}-person-position`);
+        const titleElement = document.getElementById(`${churchService}-person-title`);
+        
+        console.log('Elements found:', { nameElement, positionElement, titleElement });
+        
+        if (!nameElement || !positionElement || !titleElement) {
+          console.error('One or more form elements not found!');
+          return;
+        }
+        
+        const name = nameElement.value.trim();
+        const position = positionElement.value.trim();
+        const title = titleElement.value.trim();
+        
+        console.log('Form values:', { name, position, title });
+        
+        if (!name || !position) {
+          console.log('Validation failed: name or position missing');
+          // Validation failed - removed alert to prevent focus issues
+          return;
+        }
+
+        const slide = { type: 'normal', name, position, title, service: churchService };
+        console.log('Adding slide:', slide);
+        
+        const wasEditing = editingIndex >= 0;
+        const slideIndexToScrollTo = wasEditing ? editingIndex : -1;
+        
+        if (editingIndex >= 0) {
+          // Edit mode - update existing slide
+          serviceSlides[editingIndex] = slide;
+        } else {
+          // Add mode - add new slide
+          serviceSlides.push(slide);
+        }
+        
+        displayAllServiceSlides();
+        saveServiceSlides(); // Save to file
+        hideAllForms(churchService);
+        
+        // Scroll back to the edited slide
+        if (wasEditing && slideIndexToScrollTo >= 0) {
+          setTimeout(() => {
+            const slideElements = document.querySelectorAll('.service-slide');
+            slideElements.forEach(element => {
+              if (parseInt(element.dataset.index) === slideIndexToScrollTo) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            });
+          }, 150);
+        }
+      }
+
+      function addBibleVerseSlide(churchService) {
+        console.log('addBibleVerseSlide called for:', churchService);
+        
+        const verseTextElement = document.getElementById(`${churchService}-verse-text`);
+        const referenceElement = document.getElementById(`${churchService}-verse-reference`);
+        
+        console.log('Elements found:', { verseTextElement, referenceElement });
+        
+        if (!verseTextElement || !referenceElement) {
+          console.error('One or more form elements not found!');
+          return;
+        }
+        
+        const verseText = verseTextElement.value.trim();
+        const reference = referenceElement.value.trim();
+        
+        console.log('Form values:', { verseText, reference });
+        
+        if (!verseText || !reference) {
+          console.log('Validation failed: verseText or reference missing');
+          // Validation failed - removed alert to prevent focus issues
+          return;
+        }
+
+        const slide = { type: 'bible', verseText, reference, service: churchService };
+        console.log('Adding slide:', slide);
+        
+        const wasEditing = editingIndex >= 0;
+        const slideIndexToScrollTo = wasEditing ? editingIndex : -1;
+        
+        if (editingIndex >= 0) {
+          // Edit mode - update existing slide
+          serviceSlides[editingIndex] = slide;
+        } else {
+          // Add mode - add new slide
+          serviceSlides.push(slide);
+        }
+        
+        displayAllServiceSlides();
+        saveServiceSlides(); // Save to file
+        hideAllForms(churchService);
+        
+        // Scroll back to the edited slide
+        if (wasEditing && slideIndexToScrollTo >= 0) {
+          setTimeout(() => {
+            const slideElements = document.querySelectorAll('.service-slide');
+            slideElements.forEach(element => {
+              if (parseInt(element.dataset.index) === slideIndexToScrollTo) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            });
+          }, 150);
+        }
+      }
+
+      function addTitleSlide(churchService) {
+        console.log('addTitleSlide called for:', churchService);
+        
+        const titleTextElement = document.getElementById(`${churchService}-title-text`);
+        const titleSubtitleElement = document.getElementById(`${churchService}-title-subtitle`);
+        
+        console.log('Elements found:', { titleTextElement, titleSubtitleElement });
+        
+        if (!titleTextElement || !titleSubtitleElement) {
+          console.error('One or more form elements not found!');
+          return;
+        }
+        
+        const titleText = titleTextElement.value.trim();
+        const titleSubtitle = titleSubtitleElement.value.trim();
+        
+        console.log('Form values:', { titleText, titleSubtitle });
+        
+        if (!titleText) {
+          console.log('Validation failed: titleText missing');
+          // Validation failed - removed alert to prevent focus issues
+          return;
+        }
+
+        const slide = { type: 'title', titleText, titleSubtitle, service: churchService };
+        console.log('Adding slide:', slide);
+        
+        const wasEditing = editingIndex >= 0;
+        const slideIndexToScrollTo = wasEditing ? editingIndex : -1;
+        
+        if (editingIndex >= 0) {
+          // Edit mode - update existing slide
+          serviceSlides[editingIndex] = slide;
+        } else {
+          // Add mode - add new slide
+          serviceSlides.push(slide);
+        }
+        
+        displayAllServiceSlides();
+        saveServiceSlides(); // Save to file
+        hideAllForms(churchService);
+        
+        // Scroll back to the edited slide
+        if (wasEditing && slideIndexToScrollTo >= 0) {
+          setTimeout(() => {
+            const slideElements = document.querySelectorAll('.service-slide');
+            slideElements.forEach(element => {
+              if (parseInt(element.dataset.index) === slideIndexToScrollTo) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            });
+          }, 150);
+        }
+      }
+
+      function showAddServiceForm(churchService) {
+        showSlideTypeSelection(churchService);
+      }
+
+      function hideAddServiceForm(churchService) {
+        hideAllForms(churchService);
+      }
+
+      function editServiceSlide(index) {
+        const slide = serviceSlides[index];
+        editingIndex = index;
+        const churchService = slide.service || 'thai-church'; // Set current service from slide
+        currentChurchService = churchService;
+        
+        // Find and store the slide element for scrolling back later
+        const slideElements = document.querySelectorAll('.service-slide');
+        slideElements.forEach(element => {
+          if (parseInt(element.dataset.index) === index) {
+            editingSlideElement = element;
+          }
+        });
+        
+        let formElement;
+        
+        if (slide.type === 'title') {
+          // Edit Title slide
+          document.getElementById(`${churchService}-title-text`).value = slide.titleText || '';
+          document.getElementById(`${churchService}-title-subtitle`).value = slide.titleSubtitle || '';
+          const submitBtn = document.querySelector(`#${churchService}-title-slide-form button[type="submit"]`);
+          if (submitBtn) submitBtn.textContent = 'Update Title';
+          formElement = document.getElementById(`${churchService}-title-slide-form`);
+          formElement.style.display = 'block';
+        } else if (slide.type === 'bible') {
+          // Edit Bible verse
+          document.getElementById(`${churchService}-verse-text`).value = slide.verseText || '';
+          document.getElementById(`${churchService}-verse-reference`).value = slide.reference || '';
+          const submitBtn = document.querySelector(`#${churchService}-bible-verse-form button[type="submit"]`);
+          if (submitBtn) submitBtn.textContent = 'Update Bible Verse';
+          formElement = document.getElementById(`${churchService}-bible-verse-form`);
+          formElement.style.display = 'block';
+        } else {
+          // Edit normal slide (backward compatibility for slides without type)
+          document.getElementById(`${churchService}-person-position`).value = slide.position || '';
+          document.getElementById(`${churchService}-person-title`).value = slide.title || '';
+          document.getElementById(`${churchService}-person-name`).value = slide.name || '';
+          const submitBtn = document.querySelector(`#${churchService}-normal-slide-form button[type="submit"]`);
+          if (submitBtn) submitBtn.textContent = 'Update Slide';
+          formElement = document.getElementById(`${churchService}-normal-slide-form`);
+          formElement.style.display = 'block';
+        }
+        
+        // Scroll the form into view smoothly
+        if (formElement) {
+          setTimeout(() => {
+            formElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
+        }
+      }
+
+      function duplicateServiceSlide(index) {
+        // Get the slide to duplicate
+        const originalSlide = serviceSlides[index];
+        
+        // Create a copy of the slide (deep clone to avoid reference issues)
+        const duplicatedSlide = JSON.parse(JSON.stringify(originalSlide));
+        
+        // Insert the duplicated slide right after the original
+        serviceSlides.splice(index + 1, 0, duplicatedSlide);
+        
+        // Save and refresh display
+        saveServiceSlides();
+        displayAllServiceSlides();
+      }
+
+      function deleteServiceSlide(index) {
+        // Delete slide without confirmation dialog to avoid focus issues
+        serviceSlides.splice(index, 1);
+        displayAllServiceSlides();
+        saveServiceSlides(); // Save to file
+      }
+
+      function displayServiceSlides(churchService) {
+        const list = document.getElementById(`${churchService}-service-list`);
+        if (!list) return;
+        
+        list.innerHTML = '';
+        
+        // Filter slides for this specific church service
+        const filteredSlides = serviceSlides
+          .map((slide, originalIndex) => ({ slide, originalIndex }))
+          .filter(item => item.slide.service === churchService);
+        
+        filteredSlides.forEach((item, displayIndex) => {
+          const { slide, originalIndex } = item;
+          const div = document.createElement('div');
+          div.className = 'service-slide';
+          div.draggable = true;
+          div.dataset.index = originalIndex;
+          div.dataset.service = churchService;
+          
+          let contentHTML = '';
+          
+          if (slide.type === 'title') {
+            // Title slide display
+            let subtitleHTML = '';
+            if (slide.titleSubtitle) {
+              subtitleHTML = `<div class="service-slide-name" style="font-size:12px; color:#999;">${slide.titleSubtitle}</div>`;
+            }
+            contentHTML = `
+              <div class="service-slide-text" style="flex: 1;">
+                <div class="service-slide-position">📋 Title</div>
+                <div class="service-slide-title">${slide.titleText}</div>
+                ${subtitleHTML}
+              </div>
+            `;
+          } else if (slide.type === 'bible') {
+            // Bible verse display
+            contentHTML = `
+              <div class="service-slide-text" style="flex: 1;">
+                <div class="service-slide-position">📖 Bible Verse</div>
+                <div class="service-slide-title">${slide.reference}</div>
+                <div class="service-slide-name" style="font-size:12px; color:#999; font-style:italic;">${slide.verseText.substring(0, 50)}${slide.verseText.length > 50 ? '...' : ''}</div>
+              </div>
+            `;
+          } else {
+            // Normal slide display (backward compatible)
+            let titleHTML = '';
+            if (slide.title) {
+              titleHTML = `<div class="service-slide-title">${slide.title}</div>`;
+            }
+            contentHTML = `
+              <div class="service-slide-text" style="flex: 1;">
+                <div class="service-slide-position">${slide.position || ''}</div>
+                ${titleHTML}
+                <div class="service-slide-name">${slide.name || ''}</div>
+              </div>
+            `;
+          }
+          
+          div.innerHTML = `
+            <div class="drag-handle" style="cursor: move; padding: 0 8px; color: #999; font-size: 18px;">⋮⋮</div>
+            ${contentHTML}
+            <div style="display: flex; gap: 5px;">
+              <button class="duplicate-btn" onclick="event.stopPropagation(); duplicateServiceSlide(${originalIndex})" title="Duplicate">📋</button>
+              <button class="edit-btn" onclick="event.stopPropagation(); editServiceSlide(${originalIndex})">✏️</button>
+              <button class="delete-btn" onclick="event.stopPropagation(); deleteServiceSlide(${originalIndex})">🗑️</button>
+            </div>
+          `;
+          
+          // Drag and drop event handlers
+          div.addEventListener('dragstart', handleDragStart);
+          div.addEventListener('dragover', handleDragOver);
+          div.addEventListener('drop', handleDrop);
+          div.addEventListener('dragend', handleDragEnd);
+          
+          div.onclick = (e) => {
+            if (!e.target.classList.contains('delete-btn') && 
+                !e.target.classList.contains('edit-btn') &&
+                !e.target.classList.contains('duplicate-btn') &&
+                !e.target.classList.contains('drag-handle')) {
+              openServiceSlide(slide);
+            }
+          };
+          list.appendChild(div);
+        });
+      }
+
+      // Drag and drop functionality for service slides
+      let draggedElement = null;
+      let draggedIndex = null;
+      let autoScrollInterval = null;
+
+      function handleDragStart(e) {
+        e.stopPropagation(); // Prevent event from bubbling to parent church folder
+        draggedElement = this;
+        draggedIndex = parseInt(this.dataset.index);
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      }
+
+      function handleDragOver(e) {
+        if (e.preventDefault) {
+          e.preventDefault();
+        }
+        e.stopPropagation(); // Prevent event from bubbling to parent church folder
+        e.dataTransfer.dropEffect = 'move';
+        
+        // Auto-scroll when dragging near edges
+        const scrollThreshold = 100; // pixels from edge to trigger scroll
+        const scrollSpeed = 10; // pixels per interval
+        
+        // Get the folder content container
+        const targetElement = e.currentTarget;
+        const folderContent = targetElement.closest('.folder-content');
+        
+        if (folderContent) {
+          const rect = folderContent.getBoundingClientRect();
+          const mouseY = e.clientY;
+          
+          // Clear existing interval
+          if (autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+          }
+          
+          // Scroll up if near top
+          if (mouseY - rect.top < scrollThreshold) {
+            autoScrollInterval = setInterval(() => {
+              folderContent.scrollTop -= scrollSpeed;
+            }, 20);
+          }
+          // Scroll down if near bottom
+          else if (rect.bottom - mouseY < scrollThreshold) {
+            autoScrollInterval = setInterval(() => {
+              folderContent.scrollTop += scrollSpeed;
+            }, 20);
+          }
+        }
+        
+        // Add visual feedback
+        if (targetElement !== draggedElement && targetElement.classList.contains('service-slide')) {
+          targetElement.style.borderTop = '3px solid #667eea';
+        }
+        return false;
+      }
+
+      function handleDrop(e) {
+        if (e.stopPropagation) {
+          e.stopPropagation(); // Prevent event from bubbling to parent church folder
+        }
+        if (e.preventDefault) {
+          e.preventDefault();
+        }
+        
+        const dropIndex = parseInt(this.dataset.index);
+        const targetService = this.dataset.service;
+        const draggedService = draggedElement.dataset.service;
+        
+        // Only allow reordering within the same service
+        if (draggedService !== targetService) {
+          return false;
+        }
+        
+        if (draggedIndex !== dropIndex) {
+          // Remove from old position
+          const movedSlide = serviceSlides.splice(draggedIndex, 1)[0];
+          // Insert at new position
+          serviceSlides.splice(dropIndex, 0, movedSlide);
+          
+          // Save and refresh
+          saveServiceSlides();
+          displayAllServiceSlides();
+        }
+        
+        // Clean up dragging class and auto-scroll
+        if (autoScrollInterval) {
+          clearInterval(autoScrollInterval);
+          autoScrollInterval = null;
+        }
+        
+        document.querySelectorAll('.service-slide').forEach(slide => {
+          slide.classList.remove('dragging');
+          slide.style.borderTop = '';
+        });
+        
+        return false;
+      }
+
+      function handleDragEnd(e) {
+        e.stopPropagation(); // Prevent event from bubbling to parent church folder
+        this.classList.remove('dragging');
+        
+        // Clear auto-scroll interval
+        if (autoScrollInterval) {
+          clearInterval(autoScrollInterval);
+          autoScrollInterval = null;
+        }
+        
+        // Remove all border highlights and dragging classes
+        document.querySelectorAll('.service-slide').forEach(slide => {
+          slide.classList.remove('dragging');
+          slide.style.borderTop = '';
+        });
+      }
+
+      // Drag and drop functionality for church service folders
+      let draggedChurchFolder = null;
+      let churchServicesOrder = ['thai-church', 'inter-church', 'vespers', 'chapel', 'assembly'];
+
+      function initChurchFolderDragAndDrop() {
+        const churchFolders = document.querySelectorAll('.church-service-folder');
+        
+        churchFolders.forEach(folder => {
+          folder.addEventListener('dragstart', handleChurchDragStart);
+          folder.addEventListener('dragover', handleChurchDragOver);
+          folder.addEventListener('drop', handleChurchDrop);
+          folder.addEventListener('dragend', handleChurchDragEnd);
+        });
+      }
+
+      function handleChurchDragStart(e) {
+        draggedChurchFolder = this;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.innerHTML);
+      }
+
+      function handleChurchDragOver(e) {
+        if (e.preventDefault) {
+          e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = 'move';
+        
+        const targetElement = e.currentTarget;
+        if (targetElement !== draggedChurchFolder && targetElement.classList.contains('church-service-folder')) {
+          targetElement.style.borderTop = '3px solid #667eea';
+        }
+        return false;
+      }
+
+      function handleChurchDrop(e) {
+        if (e.stopPropagation) {
+          e.stopPropagation();
+        }
+        
+        if (draggedChurchFolder !== this) {
+          const draggedService = draggedChurchFolder.dataset.service;
+          const targetService = this.dataset.service;
+          
+          const draggedIdx = churchServicesOrder.indexOf(draggedService);
+          const targetIdx = churchServicesOrder.indexOf(targetService);
+          
+          // Reorder the array
+          churchServicesOrder.splice(draggedIdx, 1);
+          churchServicesOrder.splice(targetIdx, 0, draggedService);
+          
+          // Save order to localStorage
+          localStorage.setItem('churchServicesOrder', JSON.stringify(churchServicesOrder));
+          
+          // Reorder DOM elements
+          reorderChurchFolders();
+        }
+        
+        // Clean up all dragging classes
+        document.querySelectorAll('.church-service-folder').forEach(folder => {
+          folder.classList.remove('dragging');
+          folder.style.borderTop = '';
+        });
+        
+        return false;
+      }
+
+      function handleChurchDragEnd(e) {
+        this.classList.remove('dragging');
+        
+        // Remove all border highlights and dragging classes
+        document.querySelectorAll('.church-service-folder').forEach(folder => {
+          folder.classList.remove('dragging');
+          folder.style.borderTop = '';
+        });
+      }
+
+      function reorderChurchFolders() {
+        const container = document.getElementById('church-services-container');
+        const folders = Array.from(container.querySelectorAll('.church-service-folder'));
+        
+        // Sort folders based on the order array
+        folders.sort((a, b) => {
+          const aService = a.dataset.service;
+          const bService = b.dataset.service;
+          return churchServicesOrder.indexOf(aService) - churchServicesOrder.indexOf(bService);
+        });
+        
+        // Clear and re-append in the new order (this preserves all element properties including styles)
+        container.innerHTML = '';
+        folders.forEach(folder => {
+          container.appendChild(folder);
+          // Re-initialize drag and drop listeners after re-appending
+          folder.removeEventListener('dragstart', handleChurchDragStart);
+          folder.removeEventListener('dragover', handleChurchDragOver);
+          folder.removeEventListener('drop', handleChurchDrop);
+          folder.removeEventListener('dragend', handleChurchDragEnd);
+          
+          folder.addEventListener('dragstart', handleChurchDragStart);
+          folder.addEventListener('dragover', handleChurchDragOver);
+          folder.addEventListener('drop', handleChurchDrop);
+          folder.addEventListener('dragend', handleChurchDragEnd);
+        });
+      }
+
+      function loadChurchServicesOrder() {
+        const savedOrder = localStorage.getItem('churchServicesOrder');
+        if (savedOrder) {
+          try {
+            churchServicesOrder = JSON.parse(savedOrder);
+            
+            // Recreate custom service folders that don't exist in DOM yet
+            const defaultServices = ['thai-church', 'inter-church', 'vespers', 'chapel', 'assembly'];
+            const customServices = churchServicesOrder.filter(id => !defaultServices.includes(id));
+            
+            customServices.forEach(serviceId => {
+              // Check if service folder already exists in DOM
+              const existingFolder = document.querySelector(`.church-service-folder[data-service="${serviceId}"]`);
+              if (!existingFolder) {
+                // Recreate the service folder
+                recreateServiceFolder(serviceId);
+              }
+            });
+            
+            reorderChurchFolders();
+          } catch (e) {
+            console.error('Error loading church services order:', e);
+          }
+        }
+      }
+      
+      function recreateServiceFolder(serviceId) {
+        // Get a random color gradient
+        const colors = Object.keys(colorGradients);
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        const gradient = colorGradients[randomColor];
+        
+        // Extract service name from ID (e.g., 'youth-service' -> 'Youth Service')
+        const serviceName = serviceId.split('-').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+        
+        const serviceHTML = `
+          <div class="church-service-folder" draggable="true" data-service="${serviceId}" data-gradient="${gradient}">
+            <div class="folder" style="margin:10px 0; border:1px solid #444;">
+              <div class="folder-header" onclick="toggleFolder('${serviceId}')" style="background:${gradient}; cursor:move;">
+                <span class="folder-icon" id="${serviceId}-icon">📁</span>
+                <span>${serviceName}</span>
+                <button onclick="event.stopPropagation(); deleteChurchService('${serviceId}')" style="margin-left:auto; background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️</button>
+                <span style="font-size:12px; opacity:0.7; margin-left:5px;">⋮⋮</span>
+              </div>
+              <div class="folder-content collapsed" id="${serviceId}-content">
+                <button class="btn" onclick="showSlideTypeSelection('${serviceId}')">➕ Add Slide</button>
+                
+                <!-- Slide Type Selection -->
+                <div id="${serviceId}-slide-type-selection" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Choose Slide Type</h3>
+                  <button class="btn" onclick="showTitleSlideForm('${serviceId}')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    📋 Title Slide
+                  </button>
+                  <button class="btn" onclick="showNormalSlideForm('${serviceId}')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    � Normal Slide
+                  </button>
+                  <button class="btn" onclick="showBibleVerseForm('${serviceId}')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
+                    📖 Bible Verse
+                  </button>
+                  <button class="btn" onclick="hideSlideTypeSelection('${serviceId}')" style="width:100%; background:#666;">
+                    Cancel
+                  </button>
+                </div>
+                
+                <!-- Title Slide Form -->
+                <div id="${serviceId}-title-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#f093fb;">Title Slide</h3>
+                  <input type="text" id="${serviceId}-title-text" placeholder="Title Text (e.g., Sunday Worship Service)" />
+                  <input type="text" id="${serviceId}-title-subtitle" placeholder="Subtitle (Optional, e.g., October 19, 2025)" />
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); addTitleSlide('${serviceId}')">Add Title Slide</button>
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); hideAllForms('${serviceId}')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Normal Slide Form -->
+                <div id="${serviceId}-normal-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Normal Slide</h3>
+                  <input type="text" id="${serviceId}-person-position" placeholder="Position/Role (e.g., Sermon, Prayer)" />
+                  <input type="text" id="${serviceId}-person-title" placeholder="Title (Optional, e.g., The Beginning of Life)" />
+                  <input type="text" id="${serviceId}-person-name" placeholder="Person Name" />
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); addNormalSlide('${serviceId}')">Add Slide</button>
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); hideAllForms('${serviceId}')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Bible Verse Form -->
+                <div id="${serviceId}-bible-verse-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#56ab2f;">Bible Verse</h3>
+                  <textarea id="${serviceId}-verse-text" placeholder="Enter the verse text..." style="width:100%; height:80px; padding:8px; border-radius:5px; border:1px solid #ccc; resize:vertical; font-family:'Arial'; font-size:14px;"></textarea>
+                  <input type="text" id="${serviceId}-verse-reference" placeholder="Reference (e.g., John 3:16)" />
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); addBibleVerseSlide('${serviceId}')">Add Bible Verse</button>
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); hideAllForms('${serviceId}')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <div id="${serviceId}-service-list"></div>
+              </div>
+            </div>
+          </div>`;
+
+        // Add to church services container
+        const container = document.getElementById('church-services-container');
+        container.insertAdjacentHTML('beforeend', serviceHTML);
+
+        // Display any existing slides for this service
+        displayServiceSlides(serviceId);
+      }
+
+      // Folder Management Functions
+      const colorGradients = {
+        green: 'linear-gradient(135deg, #56ab2f 0%, #a8e063 100%)',
+        purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        pink: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        orange: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+        teal: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+        blue: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+        red: 'linear-gradient(135deg, #eb3349 0%, #f45c43 100%)'
+      };
+
+      function showAddFolderDialog() {
+        // Hide other dialogs
+        document.getElementById('add-subfolder-dialog').style.display = 'none';
+        
+        // Clear and show the dialog
+        const input = document.getElementById('new-folder-name');
+        input.value = '';
+        input.blur(); // Remove any existing focus
+        input.removeAttribute('readonly'); // Ensure it's not readonly
+        input.disabled = false; // Ensure it's not disabled
+        document.getElementById('add-folder-dialog').style.display = 'block';
+        
+        // Focus on the input field after a brief delay to ensure dialog is rendered
+        setTimeout(() => {
+          input.focus();
+          input.click(); // Also trigger a click to ensure it's active
+        }, 150);
+      }
+
+      function hideAddFolderDialog() {
+        document.getElementById('add-folder-dialog').style.display = 'none';
+        document.getElementById('new-folder-name').value = '';
+      }
+
+      function showAddSubfolderDialog() {
+        // Hide other dialogs
+        document.getElementById('add-folder-dialog').style.display = 'none';
+        
+        // Clear and show the dialog
+        const input = document.getElementById('new-subfolder-name');
+        input.value = '';
+        input.blur(); // Remove any existing focus
+        input.removeAttribute('readonly'); // Ensure it's not readonly
+        input.disabled = false; // Ensure it's not disabled
+        document.getElementById('add-subfolder-dialog').style.display = 'block';
+        
+        // Focus on the input field after a brief delay to ensure dialog is rendered
+        setTimeout(() => {
+          input.focus();
+          input.click(); // Also trigger a click to ensure it's active
+        }, 150);
+      }
+
+      function hideAddSubfolderDialog() {
+        document.getElementById('add-subfolder-dialog').style.display = 'none';
+        document.getElementById('new-subfolder-name').value = '';
+      }
+
+      function createMainFolder() {
+        const folderName = document.getElementById('new-folder-name').value.trim();
+        if (!folderName) {
+          alert('Please enter a folder name');
+          return;
+        }
+
+        const folderId = folderName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        
+        // Check if folder already exists
+        if (document.getElementById(`${folderId}-content`)) {
+          alert('A folder with this name already exists');
+          return;
+        }
+
+        // Create new folder HTML
+        const folderHTML = `
+    <div class="folder" id="folder-${folderId}" data-folder-type="main">
+      <div class="folder-header" onclick="toggleFolder('${folderId}')">
+        <span class="folder-icon" id="${folderId}-icon">📁</span>
+        <span>${folderName}</span>
+        <button onclick="event.stopPropagation(); deleteMainFolder('${folderId}')" style="margin-left:auto; background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️ Delete</button>
+      </div>
+      <div class="folder-content collapsed" id="${folderId}-content">
+        <p style="padding:15px; color:#aaa;">This folder is empty. Add content here.</p>
+      </div>
+    </div>`;
+
+        // Insert before the script tag
+        const scriptTag = document.querySelector('script');
+        scriptTag.insertAdjacentHTML('beforebegin', folderHTML);
+
+        // Save to localStorage
+        const customFolders = JSON.parse(localStorage.getItem('customMainFolders') || '[]');
+        customFolders.push({ id: folderId, name: folderName });
+        localStorage.setItem('customMainFolders', JSON.stringify(customFolders));
+
+        hideAddFolderDialog();
+        // Folder created successfully - removed alert to prevent focus issues
+      }
+
+      function deleteMainFolder(folderId) {
+        // Removed confirm dialog to prevent focus issues with input fields
+        const folderElement = document.getElementById(`folder-${folderId}`);
+        if (folderElement) {
+          folderElement.remove();
+        }
+
+        // Remove from localStorage
+        let customFolders = JSON.parse(localStorage.getItem('customMainFolders') || '[]');
+        customFolders = customFolders.filter(f => f.id !== folderId);
+        localStorage.setItem('customMainFolders', JSON.stringify(customFolders));
+
+        // Deleted successfully - removed alert to prevent focus issues
+      }
+
+      function createChurchService() {
+        const serviceName = document.getElementById('new-subfolder-name').value.trim();
+        const colorScheme = document.getElementById('subfolder-color').value;
+        
+        if (!serviceName) {
+          alert('Please enter a service name');
+          return;
+        }
+
+        const serviceId = serviceName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        
+        // Check if service already exists
+        if (document.getElementById(`${serviceId}-content`)) {
+          alert('A service with this name already exists');
+          return;
+        }
+
+        const gradient = colorGradients[colorScheme];
+
+        // Create new church service HTML
+        const serviceHTML = `
+          <div class="church-service-folder" draggable="true" data-service="${serviceId}" data-gradient="${gradient}">
+            <div class="folder" style="margin:10px 0; border:1px solid #444;">
+              <div class="folder-header" onclick="toggleFolder('${serviceId}')" style="background:${gradient}; cursor:move;">
+                <span class="folder-icon" id="${serviceId}-icon">📁</span>
+                <span>${serviceName}</span>
+                <button onclick="event.stopPropagation(); deleteChurchService('${serviceId}')" style="margin-left:auto; background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️</button>
+                <span style="font-size:12px; opacity:0.7; margin-left:5px;">⋮⋮</span>
+              </div>
+              <div class="folder-content collapsed" id="${serviceId}-content">
+                <button class="btn" onclick="showSlideTypeSelection('${serviceId}')">➕ Add Slide</button>
+                
+                <!-- Slide Type Selection -->
+                <div id="${serviceId}-slide-type-selection" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Choose Slide Type</h3>
+                  <button class="btn" onclick="showTitleSlideForm('${serviceId}')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    📋 Title Slide
+                  </button>
+                  <button class="btn" onclick="showNormalSlideForm('${serviceId}')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    📝 Normal Slide
+                  </button>
+                  <button class="btn" onclick="showBibleVerseForm('${serviceId}')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
+                    📖 Bible Verse
+                  </button>
+                  <button class="btn" onclick="hideSlideTypeSelection('${serviceId}')" style="width:100%; background:#666;">
+                    Cancel
+                  </button>
+                </div>
+                
+                <!-- Title Slide Form -->
+                <div id="${serviceId}-title-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#f093fb;">Title Slide</h3>
+                  <input type="text" id="${serviceId}-title-text" placeholder="Title Text (e.g., Sunday Worship Service)" />
+                  <input type="text" id="${serviceId}-title-subtitle" placeholder="Subtitle (Optional, e.g., October 19, 2025)" />
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); addTitleSlide('${serviceId}')">Add Title Slide</button>
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); hideAllForms('${serviceId}')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Normal Slide Form -->
+                <div id="${serviceId}-normal-slide-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#667eea;">Normal Slide</h3>
+                  <input type="text" id="${serviceId}-person-position" placeholder="Position/Role (e.g., Sermon, Prayer)" />
+                  <input type="text" id="${serviceId}-person-title" placeholder="Title (Optional, e.g., The Beginning of Life)" />
+                  <input type="text" id="${serviceId}-person-name" placeholder="Person Name" />
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); addNormalSlide('${serviceId}')">Add Slide</button>
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); hideAllForms('${serviceId}')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <!-- Bible Verse Form -->
+                <div id="${serviceId}-bible-verse-form" class="service-form" style="display:none;">
+                  <h3 style="margin-top:0; color:#56ab2f;">Bible Verse</h3>
+                  <textarea id="${serviceId}-verse-text" placeholder="Enter the verse text..." style="width:100%; height:80px; padding:8px; border-radius:5px; border:1px solid #ccc; resize:vertical; font-family:'Arial'; font-size:14px;"></textarea>
+                  <input type="text" id="${serviceId}-verse-reference" placeholder="Reference (e.g., John 3:16)" />
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); addBibleVerseSlide('${serviceId}')">Add Bible Verse</button>
+                  <button type="button" onclick="event.preventDefault(); event.stopPropagation(); hideAllForms('${serviceId}')" style="background:#666; margin-left:5px;">Cancel</button>
+                </div>
+                
+                <div id="${serviceId}-service-list"></div>
+              </div>
+            </div>
+          </div>`;
+
+        // Add to church services container
+        const container = document.getElementById('church-services-container');
+        container.insertAdjacentHTML('beforeend', serviceHTML);
+
+        // Add to order array
+        churchServicesOrder.push(serviceId);
+        localStorage.setItem('churchServicesOrder', JSON.stringify(churchServicesOrder));
+
+        // Display any existing slides for this service
+        displayServiceSlides(serviceId);
+
+        // Reinitialize drag and drop
+        initChurchFolderDragAndDrop();
+
+        hideAddSubfolderDialog();
+        // Church service created successfully - removed alert to prevent focus issues
+      }
+
+      function deleteChurchService(serviceId) {
+        // Removed confirm dialog to prevent focus issues with input fields
+
+        // Remove the service folder from DOM
+        const serviceFolders = document.querySelectorAll('.church-service-folder');
+        serviceFolders.forEach(folder => {
+          if (folder.dataset.service === serviceId) {
+            folder.remove();
+          }
+        });
+
+        // Remove from order array
+        const index = churchServicesOrder.indexOf(serviceId);
+        if (index > -1) {
+          churchServicesOrder.splice(index, 1);
+          localStorage.setItem('churchServicesOrder', JSON.stringify(churchServicesOrder));
+        }
+
+        // Delete all slides associated with this service
+        serviceSlides = serviceSlides.filter(slide => slide.service !== serviceId);
+        saveServiceSlides();
+
+        // Deleted successfully - removed alert to prevent focus issues
+      }
+
+      function loadCustomMainFolders() {
+        const customFolders = JSON.parse(localStorage.getItem('customMainFolders') || '[]');
+        customFolders.forEach(folder => {
+          // Check if folder doesn't already exist (to avoid duplicates on reload)
+          if (!document.getElementById(`folder-${folder.id}`)) {
+            const folderHTML = `
+    <div class="folder" id="folder-${folder.id}" data-folder-type="main">
+      <div class="folder-header" onclick="toggleFolder('${folder.id}')">
+        <span class="folder-icon" id="${folder.id}-icon">📁</span>
+        <span>${folder.name}</span>
+        <button onclick="event.stopPropagation(); deleteMainFolder('${folder.id}')" style="margin-left:auto; background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️ Delete</button>
+      </div>
+      <div class="folder-content collapsed" id="${folder.id}-content">
+        <p style="padding:15px; color:#aaa;">This folder is empty. Add content here.</p>
+      </div>
+    </div>`;
+            
+            const scriptTag = document.querySelector('script');
+            scriptTag.insertAdjacentHTML('beforebegin', folderHTML);
+          }
+        });
+      }
+
+      function openServiceSlide(slide) {
+        let slideText;
+        let slideName;
+        
+        if (slide.type === 'title') {
+          // Title slide
+          slideText = slide.titleText;
+          
+          if (slide.titleSubtitle) {
+            slideText += `\n\n${slide.titleSubtitle}`;
+          }
+          
+          // Add marker to indicate this is a title slide
+          slideText = `[TITLE]\n${slideText}`;
+          slideName = `Title: ${slide.titleText}`;
+        } else if (slide.type === 'bible') {
+          // Bible verse slide - different marker
+          slideText = `[BIBLE]\n${slide.verseText}\n\n${slide.reference}`;
+          slideName = `Bible: ${slide.reference}`;
+        } else {
+          // Normal service slide
+          slideText = slide.position || '';
+          
+          if (slide.title) {
+            slideText += `\n\n${slide.title}`;
+          }
+          
+          slideText += `\n\n${slide.name || ''}`;
+          
+          // Add marker to indicate this is a service slide
+          slideText = `[SERVICE]\n${slideText}`;
+          slideName = `Service: ${slide.name || slide.position}`;
+        }
+        
+        // Request to open projector if not already open
+        ipcRenderer.send('open-projector');
+        // Send the slide data
+        ipcRenderer.send('song-loaded', { 
+          name: slideName, 
+          slides: [slideText] 
+        });
+      }
+
+      // Hymnal functionality (existing)
+      async function loadSongs() {
+        allSongs = await ipcRenderer.invoke('get-songs');
+        // Sort songs numerically by the number at the beginning
+        allSongs.sort((a, b) => {
+          const numA = parseInt(a.match(/^\d+/)?.[0] || '999999');
+          const numB = parseInt(b.match(/^\d+/)?.[0] || '999999');
+          return numA - numB;
+        });
+        displaySongs(allSongs);
+      }
+
+      function displaySongs(songs) {
+        const list = document.getElementById('songs');
+        list.innerHTML = '';
+        songs.forEach(name => {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          // Remove .txt extension for display
+          div.textContent = name.replace(/\.txt$/, '');
+          div.onclick = () => openSong(name);
+          list.appendChild(div);
+        });
+      }
+
+      async function openSong(name) {
+        const slides = await ipcRenderer.invoke('load-song', name);
+        ipcRenderer.send('song-loaded', { name, slides });
+      }
+
+      // Search functionality
+      document.getElementById('search').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filtered = allSongs.filter(song => song.toLowerCase().includes(searchTerm));
+        displaySongs(filtered);
+      });
+
+      // Thai Songs functionality
+      let allThaiSongs = [];
+
+      async function loadThaiSongs() {
+        allThaiSongs = await ipcRenderer.invoke('get-thai-songs');
+        // Sort Thai songs numerically
+        allThaiSongs.sort((a, b) => {
+          const numA = parseInt(a.match(/^\d+/)?.[0] || '999999');
+          const numB = parseInt(b.match(/^\d+/)?.[0] || '999999');
+          return numA - numB;
+        });
+        displayThaiSongs(allThaiSongs);
+      }
+
+      function displayThaiSongs(songs) {
+        const list = document.getElementById('thai-songs');
+        list.innerHTML = '';
+        songs.forEach(name => {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          // Remove .txt extension for display
+          div.textContent = name.replace(/\.txt$/, '');
+          div.onclick = () => openThaiSong(name);
+          list.appendChild(div);
+        });
+      }
+
+      async function openThaiSong(name) {
+        const slides = await ipcRenderer.invoke('load-thai-song', name);
+        ipcRenderer.send('song-loaded', { name, slides });
+      }
+
+      // Thai songs search functionality
+      document.getElementById('thai-search').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filtered = allThaiSongs.filter(song => song.toLowerCase().includes(searchTerm));
+        displayThaiSongs(filtered);
+      });
+
+      // English Songs functionality
+      let allEnglishSongs = [];
+
+      async function loadEnglishSongs() {
+        allEnglishSongs = await ipcRenderer.invoke('get-english-songs');
+        // Sort English songs numerically
+        allEnglishSongs.sort((a, b) => {
+          const numA = parseInt(a.match(/^\d+/)?.[0] || '999999');
+          const numB = parseInt(b.match(/^\d+/)?.[0] || '999999');
+          return numA - numB;
+        });
+        displayEnglishSongs(allEnglishSongs);
+      }
+
+      function displayEnglishSongs(songs) {
+        const list = document.getElementById('english-songs');
+        list.innerHTML = '';
+        songs.forEach(name => {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          // Remove .txt extension for display
+          div.textContent = name.replace(/\.txt$/, '');
+          div.onclick = () => openEnglishSong(name);
+          list.appendChild(div);
+        });
+      }
+
+      async function openEnglishSong(name) {
+        const slides = await ipcRenderer.invoke('load-english-song', name);
+        ipcRenderer.send('song-loaded', { name, slides });
+      }
+
+      // English songs search functionality
+      document.getElementById('english-search').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filtered = allEnglishSongs.filter(song => song.toLowerCase().includes(searchTerm));
+        displayEnglishSongs(filtered);
+      });
+
+      // Presentations functionality
+      let allPresentations = [];
+
+      async function loadPresentations() {
+        allPresentations = await ipcRenderer.invoke('get-presentations');
+        displayPresentations(allPresentations);
+      }
+
+      function displayPresentations(presentations) {
+        const list = document.getElementById('presentations-list');
+        list.innerHTML = '';
+        if (presentations.length === 0) {
+          list.innerHTML = '<div style="color: #999; padding: 10px; text-align: center;">No presentations imported yet.<br>Click "Import PowerPoint" to add one.</div>';
+          return;
+        }
+        presentations.forEach(name => {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.style.display = 'flex';
+          div.style.justifyContent = 'space-between';
+          div.style.alignItems = 'center';
+          
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = name;
+          nameSpan.style.flex = '1';
+          nameSpan.onclick = () => openPresentation(name);
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.textContent = '🗑️';
+          deleteBtn.className = 'delete-btn';
+          deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deletePresentation(name);
+          };
+          
+          div.appendChild(nameSpan);
+          div.appendChild(deleteBtn);
+          list.appendChild(div);
+        });
+      }
+
+      async function openPresentation(name) {
+        const slides = await ipcRenderer.invoke('load-presentation', name);
+        ipcRenderer.send('song-loaded', { name, slides });
+      }
+
+      async function importPowerPoint() {
+        const result = await ipcRenderer.invoke('import-powerpoint');
+        if (result.success) {
+          await loadPresentations(); // Refresh the list
+        }
+      }
+
+      async function deletePresentation(name) {
+        const result = await ipcRenderer.invoke('delete-presentation', name);
+        if (result.success) {
+          await loadPresentations(); // Refresh the list
+        }
+      }
+
+      // Presentations search functionality
+      document.getElementById('presentations-search').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filtered = allPresentations.filter(p => p.toLowerCase().includes(searchTerm));
+        displayPresentations(filtered);
+      });
+
+      // ===== MP3 Audio Functionality =====
+      let allAudioFiles = [];
+      let currentAudioPath = null;
+      const audioPlayer = document.getElementById('audio-player');
+      const audioPlayerContainer = document.getElementById('audio-player-container');
+      const nowPlayingText = document.getElementById('now-playing');
+
+      async function loadAudioFiles() {
+        allAudioFiles = await ipcRenderer.invoke('get-audio-files');
+        displayAudioFiles(allAudioFiles);
+      }
+
+      function displayAudioFiles(files) {
+        const list = document.getElementById('audio-list');
+        list.innerHTML = '';
+        if (files.length === 0) {
+          list.innerHTML = '<div style="color: #999; padding: 10px; text-align: center;">No audio files imported yet.<br>Click "Import MP3" to add one.</div>';
+          return;
+        }
+        files.forEach(file => {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.style.display = 'flex';
+          div.style.justifyContent = 'space-between';
+          div.style.alignItems = 'center';
+          
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = file.name;
+          nameSpan.style.flex = '1';
+          nameSpan.onclick = () => loadAudioFile(file);
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.textContent = '🗑️';
+          deleteBtn.className = 'delete-btn';
+          deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteAudioFile(file.name);
+          };
+          
+          div.appendChild(nameSpan);
+          div.appendChild(deleteBtn);
+          list.appendChild(div);
+        });
+      }
+
+      function loadAudioFile(file) {
+        currentAudioPath = file.path;
+        audioPlayer.src = 'file:///' + file.path.replace(/\\/g, '/');
+        nowPlayingText.textContent = `Now Playing: ${file.name}`;
+        audioPlayerContainer.style.display = 'block';
+        audioPlayer.play();
+      }
+
+      function playAudio() {
+        if (audioPlayer.src) {
+          audioPlayer.play();
+        } else {
+          alert('Please select an audio file first.');
+        }
+      }
+
+      function pauseAudio() {
+        audioPlayer.pause();
+      }
+
+      function stopAudio() {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+      }
+
+      async function importMP3() {
+        const result = await ipcRenderer.invoke('import-mp3');
+        if (result.success) {
+          await loadAudioFiles(); // Refresh the list
+        }
+      }
+
+      async function deleteAudioFile(name) {
+        const result = await ipcRenderer.invoke('delete-audio-file', name);
+        if (result.success) {
+          // If the deleted file was currently playing, stop it
+          if (nowPlayingText.textContent.includes(name)) {
+            stopAudio();
+            audioPlayer.src = '';
+            nowPlayingText.textContent = 'No audio playing';
+            audioPlayerContainer.style.display = 'none';
+            currentAudioPath = null;
+          }
+          await loadAudioFiles(); // Refresh the list
+        }
+      }
+
+      function filterAudioFiles() {
+        const searchTerm = document.getElementById('audio-search').value.toLowerCase();
+        const filtered = allAudioFiles.filter(file => file.name.toLowerCase().includes(searchTerm));
+        displayAudioFiles(filtered);
+      }
+
+      // ===== Video Functionality =====
+      let allVideoFiles = [];
+      let currentVideoPath = null;
+      let currentVideoName = null;
+      const videoPlayerContainer = document.getElementById('video-player-container');
+      const nowPlayingVideoText = document.getElementById('now-playing-video');
+
+      async function loadVideoFiles() {
+        allVideoFiles = await ipcRenderer.invoke('get-video-files');
+        displayVideoFiles(allVideoFiles);
+      }
+
+      function displayVideoFiles(files) {
+        const list = document.getElementById('video-list');
+        list.innerHTML = '';
+        if (files.length === 0) {
+          list.innerHTML = '<div style="color: #999; padding: 10px; text-align: center;">No video files imported yet.<br>Click "Import Video" to add one.</div>';
+          return;
+        }
+        files.forEach(file => {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.style.display = 'flex';
+          div.style.justifyContent = 'space-between';
+          div.style.alignItems = 'center';
+          
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = file.name;
+          nameSpan.style.flex = '1';
+          nameSpan.onclick = () => loadVideoFile(file);
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.textContent = '🗑️';
+          deleteBtn.className = 'delete-btn';
+          deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteVideoFile(file.name);
+          };
+          
+          div.appendChild(nameSpan);
+          div.appendChild(deleteBtn);
+          list.appendChild(div);
+        });
+      }
+
+      function loadVideoFile(file) {
+        currentVideoPath = file.path;
+        currentVideoName = file.name;
+        nowPlayingVideoText.textContent = `Now Playing: ${file.name}`;
+        videoPlayerContainer.style.display = 'block';
+        
+        // Send video to Display2 immediately
+        ipcRenderer.send('display-video', {
+          type: 'video',
+          path: currentVideoPath,
+          name: currentVideoName,
+          action: 'load'
+        });
+      }
+
+      function playVideo() {
+        if (!currentVideoPath) {
+          alert('Please select a video file first.');
+          return;
+        }
+        // Send play command to Display2
+        ipcRenderer.send('control-video', 'play');
+      }
+
+      function pauseVideo() {
+        if (!currentVideoPath) {
+          alert('Please select a video file first.');
+          return;
+        }
+        // Send pause command to Display2
+        ipcRenderer.send('control-video', 'pause');
+      }
+
+      function stopVideo() {
+        if (!currentVideoPath) {
+          alert('Please select a video file first.');
+          return;
+        }
+        // Send stop command to Display2
+        ipcRenderer.send('control-video', 'stop');
+      }
+
+      async function importVideo() {
+        const result = await ipcRenderer.invoke('import-video');
+        if (result.success) {
+          await loadVideoFiles(); // Refresh the list
+        }
+      }
+
+      async function deleteVideoFile(name) {
+        const result = await ipcRenderer.invoke('delete-video-file', name);
+        if (result.success) {
+          // If the deleted file was currently playing, stop it
+          if (currentVideoName === name) {
+            ipcRenderer.send('control-video', 'stop');
+            nowPlayingVideoText.textContent = 'No video playing';
+            videoPlayerContainer.style.display = 'none';
+            currentVideoPath = null;
+            currentVideoName = null;
+          }
+          await loadVideoFiles(); // Refresh the list
+        }
+      }
+
+      function filterVideoFiles() {
+        const searchTerm = document.getElementById('video-search').value.toLowerCase();
+        const filtered = allVideoFiles.filter(file => file.name.toLowerCase().includes(searchTerm));
+        displayVideoFiles(filtered);
+      }
+
+      // ===== Images Functionality =====
+      let allImages = [];
+
+      async function loadImages() {
+        allImages = await ipcRenderer.invoke('get-images');
+        displayImages(allImages);
+      }
+
+      function displayImages(images) {
+        const list = document.getElementById('images-list');
+        list.innerHTML = '';
+        if (images.length === 0) {
+          list.innerHTML = '<div style="color: #999; padding: 10px; text-align: center;">No images imported yet.<br>Click "Import Images" to add some.</div>';
+          return;
+        }
+        images.forEach(image => {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.style.display = 'flex';
+          div.style.justifyContent = 'space-between';
+          div.style.alignItems = 'center';
+          
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = image.name;
+          nameSpan.style.flex = '1';
+          nameSpan.onclick = () => displayImage(image);
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.textContent = '🗑️';
+          deleteBtn.className = 'delete-btn';
+          deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteImage(image.name);
+          };
+          
+          div.appendChild(nameSpan);
+          div.appendChild(deleteBtn);
+          list.appendChild(div);
+        });
+      }
+
+      function displayImage(image) {
+        // Send image directly to Display2 (projector window)
+        // Use the same format as presentation image slides
+        ipcRenderer.send('display-image', {
+          type: 'image',
+          path: image.path
+        });
+      }
+
+      async function importImages() {
+        const result = await ipcRenderer.invoke('import-images');
+        if (result.success) {
+          await loadImages(); // Refresh the list
+        }
+      }
+
+      async function deleteImage(name) {
+        const result = await ipcRenderer.invoke('delete-image', name);
+        if (result.success) {
+          await loadImages(); // Refresh the list
+        }
+      }
+
+      function filterImages() {
+        const searchTerm = document.getElementById('images-search').value.toLowerCase();
+        const filtered = allImages.filter(image => image.name.toLowerCase().includes(searchTerm));
+        displayImages(filtered);
+      }
+
+      // Initialize
+      loadSongs();
+      loadThaiSongs();
+      loadEnglishSongs();
+      loadServiceSlides();
+      loadPresentations();
+      loadAudioFiles();
+      loadVideoFiles();
+      loadImages();
+      
+      // Initialize church folder drag-and-drop
+      loadChurchServicesOrder();
+      initChurchFolderDragAndDrop();
+      
+      // Load custom folders
+      loadCustomMainFolders();
+    </script>
+    
+    <div class="copyright-footer">© 2025 Songnam Saraphai. All rights reserved.</div>
+  </body>
+</html>
