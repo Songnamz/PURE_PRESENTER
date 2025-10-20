@@ -10,4 +10,6 @@ dist/win-unpacked/resources/app.asar
 
 # Ignore Electron binaries
 app/node_modules/electron/dist/
-node_modules/electron/dist/electron.exe
+node_modules/electron/dist/electron.exe"dist/" 
+"Video/" 
+"app/node_modules/electron/dist/" 
