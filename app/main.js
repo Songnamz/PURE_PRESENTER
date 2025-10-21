@@ -963,6 +963,22 @@ ipcMain.on('adjust-image-zoom', (event, action) => {
   }
 });
 
+// Open visual editor in control window
+ipcMain.on('open-visual-editor', (event, data) => {
+  console.log('Opening visual editor for service:', data.service);
+  if (controlWindow && !controlWindow.isDestroyed()) {
+    controlWindow.webContents.send('open-visual-editor', data);
+  }
+});
+
+// Save visual slide from control window to list window
+ipcMain.on('save-visual-slide', (event, slideData) => {
+  console.log('Saving visual slide:', slideData);
+  if (listWindow && !listWindow.isDestroyed()) {
+    listWindow.webContents.send('save-visual-slide', slideData);
+  }
+});
+
 // Get available system fonts
 ipcMain.handle('get-system-fonts', async () => {
   try {

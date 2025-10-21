@@ -710,6 +710,26 @@
       let serviceSlides = [];
       let currentChurchService = 'thai-church'; // Track which service is active
 
+      // Listen for visual slide saves from control window
+      ipcRenderer.on('save-visual-slide', (_, slideData) => {
+        console.log('Received visual slide to save:', slideData);
+        
+        // Convert visual slide to service slide format
+        const slide = {
+          type: 'visual',
+          service: slideData.service,
+          elements: slideData.elements,
+          // Generate display text from elements for the list view
+          position: 'Visual Slide',
+          name: slideData.elements.length > 0 ? slideData.elements[0].text.substring(0, 30) + '...' : 'New Visual Slide',
+          title: ''
+        };
+        
+        serviceSlides.push(slide);
+        saveServiceSlides();
+        displayAllServiceSlides();
+      });
+
       // Load service slides from file
       async function loadServiceSlides() {
         serviceSlides = await ipcRenderer.invoke('get-service-slides');
@@ -752,15 +772,12 @@
 
       // Service slides functionality
       function showSlideTypeSelection(churchService) {
-        console.log('showSlideTypeSelection called for:', churchService);
+        console.log('Opening visual editor for:', churchService);
         currentChurchService = churchService;
-        const element = document.getElementById(`${churchService}-slide-type-selection`);
-        console.log('Element found:', element);
-        if (element) {
-          element.style.display = 'block';
-        } else {
-          console.error('Slide type selection element not found for:', churchService);
-        }
+        
+        // Send message to control window to open visual editor
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.send('open-visual-editor', { service: churchService });
       }
 
       function hideSlideTypeSelection(churchService) {

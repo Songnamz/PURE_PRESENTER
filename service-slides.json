@@ -38,13 +38,6 @@
     "service": "thai-church"
   },
   {
-    "type": "normal",
-    "name": "Advent Sans Logo",
-    "position": "Advent Sans Logo",
-    "title": "",
-    "service": "inter-church"
-  },
-  {
     "type": "title",
     "titleText": "Happy Sabbath",
     "titleSubtitle": "",
@@ -95,5 +88,30 @@
     "titleText": "Combined Sabbath Worship Service",
     "titleSubtitle": "",
     "service": "combined-church"
+  },
+  {
+    "type": "visual",
+    "service": "inter-church",
+    "elements": [
+      {
+        "text": "Test",
+        "x": 396,
+        "y": 171.46875,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "text": "Happy",
+        "x": 384,
+        "y": 374.1875,
+        "fontSize": 48,
+        "color": "#a21515",
+        "align": "right"
+      }
+    ],
+    "position": "Visual Slide",
+    "name": "Test...",
+    "title": ""
   }
 ]
