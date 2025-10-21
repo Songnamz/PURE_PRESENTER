@@ -38,10 +38,21 @@
     "service": "thai-church"
   },
   {
-    "type": "title",
-    "titleText": "Happy Sabbath",
-    "titleSubtitle": "",
-    "service": "inter-church"
+    "type": "visual",
+    "service": "inter-church",
+    "elements": [
+      {
+        "text": "HiHappy Sabbath",
+        "x": 100,
+        "y": 200,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "Visual Slide",
+    "name": "HiHappy Sabbath...",
+    "title": ""
   },
   {
     "type": "normal",
@@ -88,30 +99,5 @@
     "titleText": "Combined Sabbath Worship Service",
     "titleSubtitle": "",
     "service": "combined-church"
-  },
-  {
-    "type": "visual",
-    "service": "inter-church",
-    "elements": [
-      {
-        "text": "Test",
-        "x": 396,
-        "y": 171.46875,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
-      },
-      {
-        "text": "Happy",
-        "x": 384,
-        "y": 374.1875,
-        "fontSize": 48,
-        "color": "#a21515",
-        "align": "right"
-      }
-    ],
-    "position": "Visual Slide",
-    "name": "Test...",
-    "title": ""
   }
 ]

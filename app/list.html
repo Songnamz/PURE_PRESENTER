@@ -725,7 +725,16 @@
           title: ''
         };
         
-        serviceSlides.push(slide);
+        if (slideData.editingIndex >= 0) {
+          // Update existing slide
+          console.log('Updating visual slide at index:', slideData.editingIndex);
+          serviceSlides[slideData.editingIndex] = slide;
+        } else {
+          // Add new slide
+          console.log('Adding new visual slide');
+          serviceSlides.push(slide);
+        }
+        
         saveServiceSlides();
         displayAllServiceSlides();
       });
@@ -1020,41 +1029,13 @@
           }
         });
         
-        let formElement;
-        
-        if (slide.type === 'title') {
-          // Edit Title slide
-          document.getElementById(`${churchService}-title-text`).value = slide.titleText || '';
-          document.getElementById(`${churchService}-title-subtitle`).value = slide.titleSubtitle || '';
-          const submitBtn = document.querySelector(`#${churchService}-title-slide-form button[type="submit"]`);
-          if (submitBtn) submitBtn.textContent = 'Update Title';
-          formElement = document.getElementById(`${churchService}-title-slide-form`);
-          formElement.style.display = 'block';
-        } else if (slide.type === 'bible') {
-          // Edit Bible verse
-          document.getElementById(`${churchService}-verse-text`).value = slide.verseText || '';
-          document.getElementById(`${churchService}-verse-reference`).value = slide.reference || '';
-          const submitBtn = document.querySelector(`#${churchService}-bible-verse-form button[type="submit"]`);
-          if (submitBtn) submitBtn.textContent = 'Update Bible Verse';
-          formElement = document.getElementById(`${churchService}-bible-verse-form`);
-          formElement.style.display = 'block';
-        } else {
-          // Edit normal slide (backward compatibility for slides without type)
-          document.getElementById(`${churchService}-person-position`).value = slide.position || '';
-          document.getElementById(`${churchService}-person-title`).value = slide.title || '';
-          document.getElementById(`${churchService}-person-name`).value = slide.name || '';
-          const submitBtn = document.querySelector(`#${churchService}-normal-slide-form button[type="submit"]`);
-          if (submitBtn) submitBtn.textContent = 'Update Slide';
-          formElement = document.getElementById(`${churchService}-normal-slide-form`);
-          formElement.style.display = 'block';
-        }
-        
-        // Scroll the form into view smoothly
-        if (formElement) {
-          setTimeout(() => {
-            formElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }, 100);
-        }
+        // Always open visual editor for any service slide type
+        console.log('Opening visual editor for editing slide:', slide);
+        ipcRenderer.send('open-visual-editor', { 
+          service: churchService, 
+          editingSlide: slide, 
+          editingIndex: index 
+        });
       }
 
       function duplicateServiceSlide(index) {
