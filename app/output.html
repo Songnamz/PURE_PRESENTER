@@ -21,11 +21,42 @@
     </style>
   </head>
   <body style="background:black; color:white; margin:0; padding:0; overflow:hidden; height:100vh; width:100vw; background-size:cover; background-position:center; background-repeat:no-repeat;">
-    <div id="lyrics" style="white-space:pre-wrap; height:100vh; width:100vw; display:flex; align-items:center; justify-content:center; font-family: 'Arial', sans-serif; line-height:1.6; padding:3vw; box-sizing:border-box; text-align:center; overflow:hidden; background:rgba(0,0,0,0.5); text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
-      <div style="max-height:100%; max-width:100%; overflow:hidden; font-size:10vw; font-weight:bold; letter-spacing:0.2em;">HAPPY SABBATH</div>
+    <div id="lyrics" style="white-space:pre-wrap; height:100vh; width:100vw; display:flex; align-items:center; justify-content:center; line-height:1.6; padding:3vw; box-sizing:border-box; text-align:center; overflow:hidden; background:rgba(0,0,0,0.5); text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+      <div id="initial-text" style="max-height:100%; max-width:100%; overflow:hidden; font-size:10vw; font-weight:bold; letter-spacing:0.2em; font-family: Arial, sans-serif;">HAPPY SABBATH</div>
     </div>
     <script>
       const { ipcRenderer } = require('electron');
+      
+      // Test font availability
+      function isFontAvailable(fontName) {
+        const testString = 'mmmmmmmmmmlli';
+        const testSize = '72px';
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        context.font = testSize + ' monospace';
+        const baselineWidth = context.measureText(testString).width;
+        
+        context.font = testSize + ' "' + fontName + '", monospace';
+        const testWidth = context.measureText(testString).width;
+        
+        return testWidth !== baselineWidth;
+      }
+      
+      // Declare global variables at the top
+      let fontSizeMultiplier = 1.0;
+      let currentSlideData = null;
+      let currentFontFamily = 'Arial';
+      let originalFontSizes = new Map();
+      
+      // Helper function to format font family for CSS
+      function getFontFamilyCSS(fontName) {
+        // If font name contains spaces or special characters, wrap in quotes
+        if (!fontName) return 'Arial, sans-serif';
+        
+        // Always quote the font name to ensure it works properly
+        return `"${fontName}", Arial, sans-serif`;
+      }
       
       ipcRenderer.on('display-song', (_, data) => {
         // Store current slide data for font size adjustments
@@ -41,6 +72,45 @@
         } else {
           document.body.style.backgroundImage = 'none';
         }
+      });
+
+      ipcRenderer.on('update-font', (_, fontFamily) => {
+        console.log('=== FONT UPDATE RECEIVED ===');
+        console.log('Old font:', currentFontFamily);
+        console.log('New font:', fontFamily);
+        console.log('Font available?', isFontAvailable(fontFamily));
+        
+        currentFontFamily = fontFamily || 'Arial';
+        
+        console.log('Font set to:', currentFontFamily);
+        console.log('CSS will use:', getFontFamilyCSS(currentFontFamily));
+        
+        // Update initial text font if it's still displayed
+        const initialText = document.getElementById('initial-text');
+        if (initialText) {
+          initialText.style.fontFamily = getFontFamilyCSS(currentFontFamily);
+          console.log('Updated initial text font');
+          console.log('Initial text computed font:', window.getComputedStyle(initialText).fontFamily);
+        }
+        
+        // Re-render current slide with new font
+        if (currentSlideData !== null) {
+          console.log('Re-rendering current slide with new font');
+          renderSlideWithFontSize(currentSlideData);
+          
+          // Debug: Check what font is actually being used
+          setTimeout(() => {
+            const lyricsDiv = document.getElementById('lyrics');
+            const firstDiv = lyricsDiv.querySelector('div');
+            if (firstDiv) {
+              console.log('Actual computed font-family:', window.getComputedStyle(firstDiv).fontFamily);
+            }
+          }, 100);
+        } else {
+          console.log('No slide data to re-render');
+        }
+        
+        console.log('=== FONT UPDATE COMPLETE ===');
       });
 
       // Display video fullscreen
@@ -84,11 +154,7 @@
         }
       });
 
-      // Font size adjustment
-      let fontSizeMultiplier = 1.0; // Default multiplier
-      let currentSlideData = null; // Store current slide data
-      let originalFontSizes = new Map(); // Store original font sizes
-
+      // Font size adjustment (variables already declared at top)
       ipcRenderer.on('adjust-font-size', (_, action) => {
         if (action === 'increase') {
           fontSizeMultiplier = Math.min(fontSizeMultiplier + 0.1, 2.0); // Max 200%
@@ -255,6 +321,11 @@
         const lyricsDiv = document.getElementById('lyrics');
         
         console.log('Projector received data:', data);
+        console.log('Current font family:', currentFontFamily);
+        console.log('Font CSS:', getFontFamilyCSS(currentFontFamily));
+        
+        // Set font on the parent lyrics div as well
+        lyricsDiv.style.fontFamily = getFontFamilyCSS(currentFontFamily);
         
         // Check if this is an image slide
         if (typeof data === 'object' && data !== null && data.type === 'image') {
@@ -317,13 +388,15 @@
           if (lineCount === 1) {
             // Only title text
             const titleFontSize = 6 * fontSizeMultiplier;
-            html += `<div style="font-size:${titleFontSize}vw; line-height:1.3; text-align:center; font-family:'Arial Black', 'Arial', sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">${lines[0]}</div>`;
+            const fontCSS = getFontFamilyCSS(currentFontFamily);
+            html += `<div style="font-size:${titleFontSize}vw; line-height:1.3; text-align:center; font-family:${fontCSS}; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">${lines[0]}</div>`;
           } else if (lineCount === 2) {
             // Title and subtitle
             const titleFontSize = 9 * fontSizeMultiplier;
             const subtitleFontSize = 5 * fontSizeMultiplier;
-            html += `<div style="font-size:${titleFontSize}vw; line-height:1.3; text-align:center; font-family:'Arial Black', 'Arial', sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom:3vh;">${lines[0]}</div>`;
-            html += `<div style="font-size:${subtitleFontSize}vw; line-height:1.4; text-align:center; font-family:'Arial', sans-serif; font-weight: normal; color:#a8e063;">${lines[1]}</div>`;
+            const fontCSS = getFontFamilyCSS(currentFontFamily);
+            html += `<div style="font-size:${titleFontSize}vw; line-height:1.3; text-align:center; font-family:${fontCSS}; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom:3vh;">${lines[0]}</div>`;
+            html += `<div style="font-size:${subtitleFontSize}vw; line-height:1.4; text-align:center; font-family:${fontCSS}; font-weight: normal; color:#a8e063;">${lines[1]}</div>`;
           }
           
           html += '</div>';
@@ -360,10 +433,13 @@
             }
             
             const adjustedFontSize = baseFontSize * fontSizeMultiplier;
-            html += `<div style="font-size:${adjustedFontSize}vw; line-height:1.4; margin-bottom:${marginBottom}; margin-top:${marginTop}; font-family:'Angsana New', Arial, sans-serif; font-weight: normal;">${content}</div>`;
+            const fontCSS = getFontFamilyCSS(currentFontFamily);
+            console.log('Service slide - Font CSS being used:', fontCSS);
+            html += `<div style="font-size:${adjustedFontSize}vw; line-height:1.4; margin-bottom:${marginBottom}; margin-top:${marginTop}; font-family:${fontCSS}; font-weight: normal;">${content}</div>`;
           });
           
           html += '</div>';
+          console.log('Service slide HTML:', html);
           lyricsDiv.innerHTML = html;
         } else if (isBibleVerse) {
           lyricsDiv.style.background = 'transparent';
@@ -378,11 +454,11 @@
             const verseFontSize = 4 * fontSizeMultiplier;
             const refFontSize = 5 * fontSizeMultiplier;
             
-            html += `<div style="font-size:${verseFontSize}vw; line-height:1.6; text-align:center; font-family:'Georgia', 'Times New Roman', serif; font-style:italic; padding: 5vh 3vw; max-width:80%;">"${verseText}"</div>`;
-            html += `<div style="font-size:${refFontSize}vw; line-height:1.4; margin-top:auto; font-family:'Arial', sans-serif; font-weight: bold; color:#a8e063;">${reference}</div>`;
+            html += `<div style="font-size:${verseFontSize}vw; line-height:1.6; text-align:center; font-family:${getFontFamilyCSS(currentFontFamily)}; font-style:italic; padding: 5vh 3vw; max-width:80%;">"${verseText}"</div>`;
+            html += `<div style="font-size:${refFontSize}vw; line-height:1.4; margin-top:auto; font-family:${getFontFamilyCSS(currentFontFamily)}; font-weight: bold; color:#a8e063;">${reference}</div>`;
           } else {
             const verseFontSize = 4 * fontSizeMultiplier;
-            html += `<div style="font-size:${verseFontSize}vw; line-height:1.6; text-align:center; font-family:'Georgia', 'Times New Roman', serif;">${lines[0]}</div>`;
+            html += `<div style="font-size:${verseFontSize}vw; line-height:1.6; text-align:center; font-family:${getFontFamilyCSS(currentFontFamily)};">${lines[0]}</div>`;
           }
           
           html += '</div>';
@@ -413,7 +489,20 @@
           }
           
           const adjustedFontSize = baseFontSize * fontSizeMultiplier;
-          lyricsDiv.innerHTML = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><div style="white-space:pre-wrap; font-size:${adjustedFontSize}vw; text-align:center; line-height:1.4; font-family:'Arial', sans-serif;">${text}</div></div>`;
+          const fontCSS = getFontFamilyCSS(currentFontFamily);
+          console.log('Hymnal slide - Font CSS being used:', fontCSS);
+          const finalHTML = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><div style="white-space:pre-wrap; font-size:${adjustedFontSize}vw; text-align:center; line-height:1.4; font-family:${fontCSS};">${text}</div></div>`;
+          console.log('Hymnal HTML snippet:', finalHTML.substring(0, 200));
+          lyricsDiv.innerHTML = finalHTML;
+          
+          // Verify the font was applied
+          setTimeout(() => {
+            const innerDiv = lyricsDiv.querySelector('div > div');
+            if (innerDiv) {
+              console.log('Applied font-family style:', innerDiv.style.fontFamily);
+              console.log('Computed font-family:', window.getComputedStyle(innerDiv).fontFamily);
+            }
+          }, 100);
         }
       }
     </script>

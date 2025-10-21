@@ -294,6 +294,13 @@
       </select>
     </div>
 
+    <div class="select-wrapper">
+      <label style="font-size:15px; font-weight:500;">🔤 Display Font:</label>
+      <select id="font-select" onchange="changeFont()">
+        <option value="">Loading fonts...</option>
+      </select>
+    </div>
+
     <div id="slide-info" style="font-size:14px; margin-bottom:12px; color:#a0a0a0; font-weight:500; display:flex; align-items:center; gap:12px;">
       <span id="slide-counter"></span>
       <div id="slide-dots" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
@@ -356,6 +363,78 @@
         if (savedBibleBg) {
           bibleSelect.value = savedBibleBg;
         }
+      }
+
+      // Load system fonts
+      async function loadFonts() {
+        const fonts = await ipcRenderer.invoke('get-system-fonts');
+        const fontSelect = document.getElementById('font-select');
+        
+        // Clear loading option
+        fontSelect.innerHTML = '';
+        
+        // Add default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = 'Arial';
+        defaultOption.textContent = 'Arial (Default)';
+        fontSelect.appendChild(defaultOption);
+        
+        // Populate font selector
+        fonts.forEach(font => {
+          if (font !== 'Arial') { // Skip Arial since we already added it as default
+            const option = document.createElement('option');
+            option.value = font;
+            option.textContent = font;
+            // Apply the font to the option itself for preview
+            option.style.fontFamily = font;
+            fontSelect.appendChild(option);
+          }
+        });
+        
+        // Restore saved font selection from localStorage
+        const savedFont = localStorage.getItem('display-font');
+        if (savedFont) {
+          fontSelect.value = savedFont;
+          // Apply saved font immediately
+          ipcRenderer.send('set-font', savedFont);
+        } else {
+          // Set default font
+          ipcRenderer.send('set-font', 'Arial');
+        }
+      }
+
+      // Change font
+      async function changeFont() {
+        const select = document.getElementById('font-select');
+        const fontFamily = select.value;
+        
+        console.log('=== FONT CHANGE ===');
+        console.log('Selected font:', fontFamily);
+        
+        // Save selection to localStorage
+        localStorage.setItem('display-font', fontFamily);
+        console.log('Saved to localStorage');
+        
+        // Send to projector window
+        ipcRenderer.send('set-font', fontFamily);
+        console.log('Sent set-font to main process');
+        
+        // Wait a moment for the font to be applied
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // If there's a current slide, re-show it with new font
+        if (currentSlides.length > 0) {
+          console.log('Re-displaying current slide with new font');
+          showSlide();
+        }
+        
+        // Visual feedback
+        select.style.backgroundColor = '#2ecc71';
+        setTimeout(() => {
+          select.style.backgroundColor = '#2a2a3e';
+        }, 300);
+        
+        console.log('===================');
       }
 
       // Change hymnal background
@@ -744,6 +823,7 @@
 
       // Initialize
       loadBackgrounds();
+      loadFonts();
     </script>
     
     <div class="copyright-footer">© 2025 Songnam Saraphai. All rights reserved.</div>

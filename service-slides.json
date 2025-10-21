@@ -38,9 +38,23 @@
     "service": "thai-church"
   },
   {
+    "type": "normal",
+    "name": "Advent Sans Logo",
+    "position": "Advent Sans Logo",
+    "title": "",
+    "service": "inter-church"
+  },
+  {
     "type": "title",
     "titleText": "Happy Sabbath",
     "titleSubtitle": "",
+    "service": "inter-church"
+  },
+  {
+    "type": "normal",
+    "name": "Sabbath School Classes",
+    "position": "Lesson Study",
+    "title": "Q4 L03 – “Memorials of Grace”",
     "service": "inter-church"
   },
   {
