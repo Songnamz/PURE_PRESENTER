@@ -141,6 +141,7 @@
         justify-content: space-between;
         align-items: center;
         user-select: none;
+        gap: 10px;
       }
       .service-slide:hover {
         background: #333;
@@ -156,26 +157,38 @@
         padding: 0 8px;
         color: #999;
         font-size: 18px;
+        flex-shrink: 0;
       }
       .drag-handle:hover {
         color: #667eea;
       }
       .service-slide-text {
         flex: 1;
+        min-width: 0;
+        overflow: hidden;
       }
       .service-slide-name {
         font-weight: bold;
         color: #a8e063;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .service-slide-position {
         color: #aaa;
         font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .service-slide-title {
         color: #f2c94c;
         font-size: 12px;
         font-style: italic;
         margin-top: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .edit-btn {
         background: #3498db;
@@ -292,52 +305,6 @@
               </div>
               <div class="folder-content collapsed" id="thai-church-content">
                 <button class="btn" onclick="showSlideTypeSelection('thai-church')">➕ Add Slide</button>
-                
-                <!-- Slide Type Selection -->
-                <div id="thai-church-slide-type-selection" class="service-form" style="display:none;">
-                  <h3 style="margin-top:0; color:#667eea;">Choose Slide Type</h3>
-                  <button class="btn" onclick="showTitleSlideForm('thai-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                    📋 Title Slide
-                  </button>
-                  <button class="btn" onclick="showNormalSlideForm('thai-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    📝 Normal Slide
-                  </button>
-                  <button class="btn" onclick="showBibleVerseForm('thai-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
-                    📖 Bible Verse
-                  </button>
-                  <button class="btn" onclick="hideSlideTypeSelection('thai-church')" style="width:100%; background:#666;">
-                    Cancel
-                  </button>
-                </div>
-                
-                <!-- Title Slide Form -->
-                <div id="thai-church-title-slide-form" class="service-form" style="display:none;">
-                  <h3 style="margin-top:0; color:#f093fb;">Title Slide</h3>
-                  <input type="text" id="thai-church-title-text" placeholder="Title Text (e.g., Sunday Worship Service)" />
-                  <input type="text" id="thai-church-title-subtitle" placeholder="Subtitle (Optional, e.g., October 19, 2025)" />
-                  <button type="submit" onclick="addTitleSlide('thai-church')">Add Title Slide</button>
-                  <button onclick="hideAllForms('thai-church')" style="background:#666; margin-left:5px;">Cancel</button>
-                </div>
-                
-                <!-- Normal Slide Form -->
-                <div id="thai-church-normal-slide-form" class="service-form" style="display:none;">
-                  <h3 style="margin-top:0; color:#667eea;">Normal Slide</h3>
-                  <input type="text" id="thai-church-person-position" placeholder="Position/Role (e.g., Sermon, Prayer)" />
-                  <input type="text" id="thai-church-person-title" placeholder="Title (Optional, e.g., The Beginning of Life)" />
-                  <input type="text" id="thai-church-person-name" placeholder="Person Name" />
-                  <button type="submit" onclick="addNormalSlide('thai-church')">Add Slide</button>
-                  <button onclick="hideAllForms('thai-church')" style="background:#666; margin-left:5px;">Cancel</button>
-                </div>
-                
-                <!-- Bible Verse Form -->
-                <div id="thai-church-bible-verse-form" class="service-form" style="display:none;">
-                  <h3 style="margin-top:0; color:#56ab2f;">Bible Verse</h3>
-                  <textarea id="thai-church-verse-text" placeholder="Enter the verse text..." style="width:100%; height:80px; padding:8px; border-radius:5px; border:1px solid #ccc; resize:vertical; font-family:'Arial'; font-size:14px;"></textarea>
-                  <input type="text" id="thai-church-verse-reference" placeholder="Reference (e.g., John 3:16)" />
-                  <button type="submit" onclick="addBibleVerseSlide('thai-church')">Add Bible Verse</button>
-                  <button onclick="hideAllForms('thai-church')" style="background:#666; margin-left:5px;">Cancel</button>
-                </div>
-                
                 <div id="thai-church-service-list"></div>
               </div>
             </div>
@@ -354,52 +321,6 @@
               </div>
               <div class="folder-content collapsed" id="inter-church-content">
                 <button class="btn" onclick="showSlideTypeSelection('inter-church')">➕ Add Slide</button>
-                
-                <!-- Slide Type Selection -->
-                <div id="inter-church-slide-type-selection" class="service-form" style="display:none;">
-                  <h3 style="margin-top:0; color:#667eea;">Choose Slide Type</h3>
-                  <button class="btn" onclick="showTitleSlideForm('inter-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                    📋 Title Slide
-                  </button>
-                  <button class="btn" onclick="showNormalSlideForm('inter-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    📝 Normal Slide
-                  </button>
-                  <button class="btn" onclick="showBibleVerseForm('inter-church')" style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);">
-                    📖 Bible Verse
-                  </button>
-                  <button class="btn" onclick="hideSlideTypeSelection('inter-church')" style="width:100%; background:#666;">
-                    Cancel
-                  </button>
-                </div>
-                
-                <!-- Title Slide Form -->
-                <div id="inter-church-title-slide-form" class="service-form" style="display:none;">
-                  <h3 style="margin-top:0; color:#f093fb;">Title Slide</h3>
-                  <input type="text" id="inter-church-title-text" placeholder="Title Text (e.g., Sunday Worship Service)" />
-                  <input type="text" id="inter-church-title-subtitle" placeholder="Subtitle (Optional, e.g., October 19, 2025)" />
-                  <button type="submit" onclick="addTitleSlide('inter-church')">Add Title Slide</button>
-                  <button onclick="hideAllForms('inter-church')" style="background:#666; margin-left:5px;">Cancel</button>
-                </div>
-                
-                <!-- Normal Slide Form -->
-                <div id="inter-church-normal-slide-form" class="service-form" style="display:none;">
-                  <h3 style="margin-top:0; color:#667eea;">Normal Slide</h3>
-                  <input type="text" id="inter-church-person-position" placeholder="Position/Role (e.g., Sermon, Prayer)" />
-                  <input type="text" id="inter-church-person-title" placeholder="Title (Optional, e.g., The Beginning of Life)" />
-                  <input type="text" id="inter-church-person-name" placeholder="Person Name" />
-                  <button type="submit" onclick="addNormalSlide('inter-church')">Add Slide</button>
-                  <button onclick="hideAllForms('inter-church')" style="background:#666; margin-left:5px;">Cancel</button>
-                </div>
-                
-                <!-- Bible Verse Form -->
-                <div id="inter-church-bible-verse-form" class="service-form" style="display:none;">
-                  <h3 style="margin-top:0; color:#56ab2f;">Bible Verse</h3>
-                  <textarea id="inter-church-verse-text" placeholder="Enter the verse text..." style="width:100%; height:80px; padding:8px; border-radius:5px; border:1px solid #ccc; resize:vertical; font-family:'Arial'; font-size:14px;"></textarea>
-                  <input type="text" id="inter-church-verse-reference" placeholder="Reference (e.g., John 3:16)" />
-                  <button type="submit" onclick="addBibleVerseSlide('inter-church')">Add Bible Verse</button>
-                  <button onclick="hideAllForms('inter-church')" style="background:#666; margin-left:5px;">Cancel</button>
-                </div>
-                
                 <div id="inter-church-service-list"></div>
               </div>
             </div>
@@ -719,8 +640,8 @@
           type: 'visual',
           service: slideData.service,
           elements: slideData.elements,
-          // Generate display text from elements for the list view
-          position: 'Visual Slide',
+          // Do not set a 'position' label for visual slides (avoid showing "Visual" in the list)
+          position: '',
           name: slideData.elements.length > 0 ? slideData.elements[0].text.substring(0, 30) + '...' : 'New Visual Slide',
           title: ''
         };
@@ -783,229 +704,15 @@
       function showSlideTypeSelection(churchService) {
         console.log('Opening visual editor for:', churchService);
         currentChurchService = churchService;
-        
         // Send message to control window to open visual editor
         const { ipcRenderer } = require('electron');
         ipcRenderer.send('open-visual-editor', { service: churchService });
       }
 
-      function hideSlideTypeSelection(churchService) {
-        document.getElementById(`${churchService}-slide-type-selection`).style.display = 'none';
-      }
-
-      function showNormalSlideForm(churchService) {
-        hideSlideTypeSelection(churchService);
-        document.getElementById(`${churchService}-normal-slide-form`).style.display = 'block';
-      }
-
-      function showTitleSlideForm(churchService) {
-        hideSlideTypeSelection(churchService);
-        document.getElementById(`${churchService}-title-slide-form`).style.display = 'block';
-      }
-
-      function showBibleVerseForm(churchService) {
-        hideSlideTypeSelection(churchService);
-        document.getElementById(`${churchService}-bible-verse-form`).style.display = 'block';
-      }
-
-      function hideAllForms(churchService) {
-        document.getElementById(`${churchService}-slide-type-selection`).style.display = 'none';
-        document.getElementById(`${churchService}-normal-slide-form`).style.display = 'none';
-        document.getElementById(`${churchService}-title-slide-form`).style.display = 'none';
-        document.getElementById(`${churchService}-bible-verse-form`).style.display = 'none';
-        // Clear form fields
-        document.getElementById(`${churchService}-person-name`).value = '';
-        document.getElementById(`${churchService}-person-position`).value = '';
-        document.getElementById(`${churchService}-person-title`).value = '';
-        document.getElementById(`${churchService}-title-text`).value = '';
-        document.getElementById(`${churchService}-title-subtitle`).value = '';
-        document.getElementById(`${churchService}-verse-text`).value = '';
-        document.getElementById(`${churchService}-verse-reference`).value = '';
-        
-        // Scroll back to the edited slide if canceling edit
-        const wasEditing = editingIndex >= 0;
-        editingIndex = -1;
-        
-        if (wasEditing && editingSlideElement) {
-          setTimeout(() => {
-            editingSlideElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            editingSlideElement = null;
-          }, 100);
-        }
-        
-        const submitBtn = document.querySelector(`#${churchService}-normal-slide-form button[type="submit"]`);
-        if (submitBtn) submitBtn.textContent = 'Add Slide';
-      }
-
       let editingIndex = -1; // Track which slide is being edited
       let editingSlideElement = null; // Track the slide element being edited
 
-      function addNormalSlide(churchService) {
-        console.log('addNormalSlide called for:', churchService);
-        
-        const nameElement = document.getElementById(`${churchService}-person-name`);
-        const positionElement = document.getElementById(`${churchService}-person-position`);
-        const titleElement = document.getElementById(`${churchService}-person-title`);
-        
-        console.log('Elements found:', { nameElement, positionElement, titleElement });
-        
-        if (!nameElement || !positionElement || !titleElement) {
-          console.error('One or more form elements not found!');
-          return;
-        }
-        
-        const name = nameElement.value.trim();
-        const position = positionElement.value.trim();
-        const title = titleElement.value.trim();
-        
-        console.log('Form values:', { name, position, title });
-        
-        if (!name || !position) {
-          console.log('Validation failed: name or position missing');
-          // Validation failed - removed alert to prevent focus issues
-          return;
-        }
-
-        const slide = { type: 'normal', name, position, title, service: churchService };
-        console.log('Adding slide:', slide);
-        
-        const wasEditing = editingIndex >= 0;
-        const slideIndexToScrollTo = wasEditing ? editingIndex : -1;
-        
-        if (editingIndex >= 0) {
-          // Edit mode - update existing slide
-          serviceSlides[editingIndex] = slide;
-        } else {
-          // Add mode - add new slide
-          serviceSlides.push(slide);
-        }
-        
-        displayAllServiceSlides();
-        saveServiceSlides(); // Save to file
-        hideAllForms(churchService);
-        
-        // Scroll back to the edited slide
-        if (wasEditing && slideIndexToScrollTo >= 0) {
-          setTimeout(() => {
-            const slideElements = document.querySelectorAll('.service-slide');
-            slideElements.forEach(element => {
-              if (parseInt(element.dataset.index) === slideIndexToScrollTo) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }
-            });
-          }, 150);
-        }
-      }
-
-      function addBibleVerseSlide(churchService) {
-        console.log('addBibleVerseSlide called for:', churchService);
-        
-        const verseTextElement = document.getElementById(`${churchService}-verse-text`);
-        const referenceElement = document.getElementById(`${churchService}-verse-reference`);
-        
-        console.log('Elements found:', { verseTextElement, referenceElement });
-        
-        if (!verseTextElement || !referenceElement) {
-          console.error('One or more form elements not found!');
-          return;
-        }
-        
-        const verseText = verseTextElement.value.trim();
-        const reference = referenceElement.value.trim();
-        
-        console.log('Form values:', { verseText, reference });
-        
-        if (!verseText || !reference) {
-          console.log('Validation failed: verseText or reference missing');
-          // Validation failed - removed alert to prevent focus issues
-          return;
-        }
-
-        const slide = { type: 'bible', verseText, reference, service: churchService };
-        console.log('Adding slide:', slide);
-        
-        const wasEditing = editingIndex >= 0;
-        const slideIndexToScrollTo = wasEditing ? editingIndex : -1;
-        
-        if (editingIndex >= 0) {
-          // Edit mode - update existing slide
-          serviceSlides[editingIndex] = slide;
-        } else {
-          // Add mode - add new slide
-          serviceSlides.push(slide);
-        }
-        
-        displayAllServiceSlides();
-        saveServiceSlides(); // Save to file
-        hideAllForms(churchService);
-        
-        // Scroll back to the edited slide
-        if (wasEditing && slideIndexToScrollTo >= 0) {
-          setTimeout(() => {
-            const slideElements = document.querySelectorAll('.service-slide');
-            slideElements.forEach(element => {
-              if (parseInt(element.dataset.index) === slideIndexToScrollTo) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }
-            });
-          }, 150);
-        }
-      }
-
-      function addTitleSlide(churchService) {
-        console.log('addTitleSlide called for:', churchService);
-        
-        const titleTextElement = document.getElementById(`${churchService}-title-text`);
-        const titleSubtitleElement = document.getElementById(`${churchService}-title-subtitle`);
-        
-        console.log('Elements found:', { titleTextElement, titleSubtitleElement });
-        
-        if (!titleTextElement || !titleSubtitleElement) {
-          console.error('One or more form elements not found!');
-          return;
-        }
-        
-        const titleText = titleTextElement.value.trim();
-        const titleSubtitle = titleSubtitleElement.value.trim();
-        
-        console.log('Form values:', { titleText, titleSubtitle });
-        
-        if (!titleText) {
-          console.log('Validation failed: titleText missing');
-          // Validation failed - removed alert to prevent focus issues
-          return;
-        }
-
-        const slide = { type: 'title', titleText, titleSubtitle, service: churchService };
-        console.log('Adding slide:', slide);
-        
-        const wasEditing = editingIndex >= 0;
-        const slideIndexToScrollTo = wasEditing ? editingIndex : -1;
-        
-        if (editingIndex >= 0) {
-          // Edit mode - update existing slide
-          serviceSlides[editingIndex] = slide;
-        } else {
-          // Add mode - add new slide
-          serviceSlides.push(slide);
-        }
-        
-        displayAllServiceSlides();
-        saveServiceSlides(); // Save to file
-        hideAllForms(churchService);
-        
-        // Scroll back to the edited slide
-        if (wasEditing && slideIndexToScrollTo >= 0) {
-          setTimeout(() => {
-            const slideElements = document.querySelectorAll('.service-slide');
-            slideElements.forEach(element => {
-              if (parseInt(element.dataset.index) === slideIndexToScrollTo) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }
-            });
-          }, 150);
-        }
-      }
+      // Removed legacy forms for title/normal/bible slides - Add Slide now opens Visual Editor directly
 
       function showAddServiceForm(churchService) {
         showSlideTypeSelection(churchService);
@@ -1080,8 +787,21 @@
           div.dataset.service = churchService;
           
           let contentHTML = '';
-          
-          if (slide.type === 'title') {
+          if (slide.type === 'visual') {
+            // Visual slide display - show preview text only (no 'Visual' label)
+            let previewText = '';
+            if (slide.elements && slide.elements.length > 0 && slide.elements[0].text) {
+              previewText = slide.elements[0].text.substring(0, 40);
+              if (slide.elements[0].text.length > 40) previewText += '...';
+            } else {
+              previewText = 'Visual Slide';
+            }
+            contentHTML = `
+              <div class="service-slide-text" style="flex: 1;">
+                <div class="service-slide-name">${previewText}</div>
+              </div>
+            `;
+          } else if (slide.type === 'title') {
             // Title slide display
             let subtitleHTML = '';
             if (slide.titleSubtitle) {
@@ -1121,7 +841,7 @@
           div.innerHTML = `
             <div class="drag-handle" style="cursor: move; padding: 0 8px; color: #999; font-size: 18px;">⋮⋮</div>
             ${contentHTML}
-            <div style="display: flex; gap: 5px;">
+            <div style="display: flex; gap: 5px; flex-shrink: 0;">
               <button class="duplicate-btn" onclick="event.stopPropagation(); duplicateServiceSlide(${originalIndex})" title="Duplicate">📋</button>
               <button class="edit-btn" onclick="event.stopPropagation(); editServiceSlide(${originalIndex})">✏️</button>
               <button class="delete-btn" onclick="event.stopPropagation(); deleteServiceSlide(${originalIndex})">🗑️</button>
@@ -1743,7 +1463,18 @@
         let slideText;
         let slideName;
         
-        if (slide.type === 'title') {
+        if (slide.type === 'visual' && slide.elements) {
+          // Visual slide - send elements data
+          ipcRenderer.send('open-projector');
+          ipcRenderer.send('song-loaded', { 
+            name: 'Visual Slide',
+            slides: [{
+              type: 'visual',
+              elements: slide.elements
+            }]
+          });
+          return;
+        } else if (slide.type === 'title') {
           // Title slide
           slideText = slide.titleText;
           

@@ -251,7 +251,7 @@
       .editor-canvas {
         width: 1000px;
         height: 600px;
-        background: #000;
+        background: #000 center/cover no-repeat;
         border: 2px solid #667eea;
         border-radius: 8px;
         position: relative;
@@ -259,16 +259,51 @@
         overflow: hidden;
         cursor: crosshair;
       }
+      
+      .snap-guide {
+        position: absolute;
+        background: #a8e063;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        pointer-events: none;
+        z-index: 1;
+      }
+      
+      .snap-guide.horizontal {
+        width: 100%;
+        height: 2px;
+        left: 0;
+        top: 50%;
+        transform: translateY(-1px);
+      }
+      
+      .snap-guide.vertical {
+        width: 2px;
+        height: 100%;
+        left: 50%;
+        top: 0;
+        transform: translateX(-1px);
+      }
+      
+      .snap-guide.visible {
+        opacity: 0.8;
+      }
 
       .text-element {
         position: absolute;
         color: white;
-        cursor: text; /* allow text caret */
+        cursor: move; /* show move cursor by default */
         padding: 10px;
         border: 2px dashed transparent;
-        user-select: text; /* enable selecting/caret */
+        user-select: none; /* prevent text selection during drag */
         text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         outline: none; /* hide default outline on focus */
+        z-index: 10; /* ensure text elements are above snap guides */
+      }
+      
+      .text-element.editing {
+        cursor: text; /* show text cursor when editing */
+        user-select: text; /* allow text selection when editing */
       }
 
       .text-element:hover {
@@ -320,6 +355,17 @@
         border-radius: 4px;
         cursor: pointer;
         font-size: 12px;
+      }
+
+      /* brief flash to indicate save triggered */
+      .flash-save {
+        animation: flashSave 300ms ease-in-out;
+        box-shadow: 0 0 8px rgba(102,126,234,0.8) !important;
+      }
+      @keyframes flashSave {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-2px) scale(1.02); }
+        100% { transform: translateY(0); }
       }
 
       .toolbar-btn:hover {
@@ -463,6 +509,27 @@
         if (savedBibleBg) {
           bibleSelect.value = savedBibleBg;
         }
+        // Apply selected background to editor canvas so user can preview placement
+        const editorCanvasEl = document.getElementById('editorCanvas');
+        const applyBg = async (filename) => {
+          if (!filename) {
+            editorCanvasEl.style.backgroundImage = '';
+            editorCanvasEl.style.backgroundColor = '#000';
+            return;
+          }
+          const abs = await ipcRenderer.invoke('get-background-path', filename);
+          if (abs) {
+            // Use file:// path for CSS
+            editorCanvasEl.style.backgroundImage = `url("file:///${abs.replace(/\\/g, '/')}")`;
+            editorCanvasEl.style.backgroundSize = 'cover';
+            editorCanvasEl.style.backgroundPosition = 'center';
+            editorCanvasEl.style.backgroundColor = '';
+          }
+        };
+        // Apply hymnal/service/bible saved selection depending on which is active
+        // Default to hymnal background if none selected for service
+        const initialBg = savedServiceBg || savedHymnalBg || savedBibleBg || '';
+        if (initialBg) applyBg(initialBg);
       }
 
       // Load system fonts
@@ -548,6 +615,16 @@
         // Only apply if currently showing a hymnal slide
         if (!isServiceSlide && !isBibleVerse && currentSlides.length > 0) {
           ipcRenderer.send('set-background', filename);
+          // Also apply to editor canvas for preview
+          const editorCanvasEl = document.getElementById('editorCanvas');
+          if (filename) {
+            ipcRenderer.invoke('get-background-path', filename).then(abs => {
+              if (abs) editorCanvasEl.style.backgroundImage = `url("file:///${abs.replace(/\\/g, '/')}")`;
+            });
+          } else {
+            editorCanvasEl.style.backgroundImage = '';
+            editorCanvasEl.style.backgroundColor = '#000';
+          }
         }
         // Otherwise just store the selection for later use
       }
@@ -563,6 +640,16 @@
         // Only apply if currently showing a service slide
         if (isServiceSlide && currentSlides.length > 0) {
           ipcRenderer.send('set-background', filename);
+          // Apply to editor canvas for preview
+          const editorCanvasEl = document.getElementById('editorCanvas');
+          if (filename) {
+            ipcRenderer.invoke('get-background-path', filename).then(abs => {
+              if (abs) editorCanvasEl.style.backgroundImage = `url("file:///${abs.replace(/\\/g, '/')}")`;
+            });
+          } else {
+            editorCanvasEl.style.backgroundImage = '';
+            editorCanvasEl.style.backgroundColor = '#000';
+          }
         }
         // Otherwise just store the selection for later use
       }
@@ -578,6 +665,16 @@
         // Only apply if currently showing a Bible verse
         if (isBibleVerse && currentSlides.length > 0) {
           ipcRenderer.send('set-background', filename);
+          // Apply to editor canvas for preview
+          const editorCanvasEl = document.getElementById('editorCanvas');
+          if (filename) {
+            ipcRenderer.invoke('get-background-path', filename).then(abs => {
+              if (abs) editorCanvasEl.style.backgroundImage = `url("file:///${abs.replace(/\\/g, '/')}")`;
+            });
+          } else {
+            editorCanvasEl.style.backgroundImage = '';
+            editorCanvasEl.style.backgroundColor = '#000';
+          }
         }
         // Otherwise just store the selection for later use
       }
@@ -589,8 +686,11 @@
         currentSongName = data.name;
         currentIndex = 0;
         
-        // Detect if this is a service slide or Bible verse
-        isServiceSlide = data.name.startsWith('Service:') || data.name.startsWith('Title:');
+        // Detect if this is a service slide, Bible verse, or visual slide
+        isServiceSlide = data.name.startsWith('Service:') || 
+                        data.name.startsWith('Title:') || 
+                        data.name === 'Visual Slide' ||
+                        (data.slides.length > 0 && data.slides[0].type === 'visual');
         isBibleVerse = data.name.startsWith('Bible:');
         
         
@@ -656,33 +756,157 @@
           if (i === currentIndex) {
             thumbnail.classList.add('active');
           }
-          
           const number = document.createElement('div');
           number.className = 'slide-thumbnail-number';
           number.textContent = i + 1;
-          
           const content = document.createElement('div');
           content.className = 'slide-thumbnail-content';
-          
           const slideData = currentSlides[i];
-          
-          // Check if this is an image slide (presentation)
           if (typeof slideData === 'object' && slideData.type === 'image') {
             // Display image thumbnail
             const img = document.createElement('img');
             img.src = `file:///${slideData.path.replace(/\\/g, '/')}`;
             img.style.cssText = 'max-width: 100%; max-height: 120px; object-fit: contain; border-radius: 4px;';
             content.appendChild(img);
+          } else if (typeof slideData === 'object' && slideData.type === 'visual') {
+            // Display canvas thumbnail for visual slide
+            const canvas = document.createElement('canvas');
+            // Larger drawing surface for clearer thumbnails
+            canvas.width = 480; // high-res drawing surface
+            canvas.height = 300;
+            // Display size (CSS) - keep aspect ratio
+            canvas.style.width = '240px';
+            canvas.style.height = '150px';
+            canvas.style.borderRadius = '6px';
+            canvas.style.background = '#222';
+            canvas.style.boxShadow = '0 1px 6px #0004';
+            // Create an inner wrapper with fixed width so canvas and label stay centered
+            const thumbInner = document.createElement('div');
+            thumbInner.style.width = '240px';
+            thumbInner.style.display = 'flex';
+            thumbInner.style.flexDirection = 'column';
+            thumbInner.style.alignItems = 'center';
+            thumbInner.style.justifyContent = 'center';
+            thumbInner.style.margin = '0 auto';
+            thumbInner.appendChild(canvas);
+            // Center the thumbnail block itself vertically/horizontally
+            thumbnail.style.display = 'flex';
+            thumbnail.style.flexDirection = 'column';
+            thumbnail.style.alignItems = 'center';
+            thumbnail.style.justifyContent = 'center';
+            // Reduce extra top padding for visual thumbnails so canvas truly centers
+            thumbnail.style.paddingTop = '15px';
+            thumbnail.style.paddingBottom = '15px';
+            // Center the canvas inside the thumbnail
+            canvas.style.display = 'block';
+            canvas.style.margin = '0 auto';
+            // Use flex centering on content to be extra-safe
+            content.style.display = 'flex';
+            content.style.flexDirection = 'column';
+            content.style.alignItems = 'center';
+            content.style.justifyContent = 'center';
+            content.style.gap = '8px';
+            // Add a short preview label under the canvas
+            const previewLabel = document.createElement('div');
+            previewLabel.style.color = '#ccc';
+            previewLabel.style.fontSize = '12px';
+            previewLabel.style.textAlign = 'center';
+            previewLabel.style.marginTop = '6px';
+            previewLabel.style.width = '100%';
+            let previewText = 'Visual Slide';
+            if (slideData.elements && slideData.elements.length > 0 && slideData.elements[0].text) {
+              previewText = slideData.elements[0].text.substring(0, 60);
+              if (slideData.elements[0].text.length > 60) previewText += '...';
+            }
+            previewLabel.textContent = previewText;
+            thumbInner.appendChild(previewLabel);
+            // Center absolutely within the thumbnail container
+            thumbInner.style.position = 'absolute';
+            thumbInner.style.left = '50%';
+            thumbInner.style.top = '50%';
+            thumbInner.style.transform = 'translate(-50%, -50%)';
+            // Ensure thumbnail is positioned (it already is via CSS) and append inner wrapper directly
+            thumbnail.appendChild(thumbInner);
+            // Draw elements
+            setTimeout(() => {
+              const ctx = canvas.getContext('2d');
+              // Clear high-res canvas
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              let drawn = false;
+              // Scale helper: map element positions from editor space to thumbnail
+              const thumbW = canvas.width;
+              const thumbH = canvas.height;
+              // Use the real editor canvas size (fall back to 1000x600 if not available)
+              const editorCanvasEl = document.getElementById('editorCanvas');
+              const srcW = (editorCanvasEl && editorCanvasEl.clientWidth) ? editorCanvasEl.clientWidth : 1000;
+              const srcH = (editorCanvasEl && editorCanvasEl.clientHeight) ? editorCanvasEl.clientHeight : 600;
+              const scaleX = thumbW / srcW;
+              const scaleY = thumbH / srcH;
+              if (slideData.elements && slideData.elements.length > 0) {
+                slideData.elements.forEach(el => {
+                  if (el.type === 'rect') {
+                    drawn = true;
+                    ctx.fillStyle = el.color || '#4caf50';
+                    const x = Math.max(0, Math.min(thumbW-10, (el.x || 10) * scaleX));
+                    const y = Math.max(0, Math.min(thumbH-10, (el.y || 10) * scaleY));
+                    const w = Math.max(10, Math.min(thumbW, (el.width || 200) * scaleX));
+                    const h = Math.max(10, Math.min(thumbH, (el.height || 100) * scaleY));
+                    ctx.fillRect(x, y, w, h);
+                  } else if (el.type === 'text' && el.text) {
+                    drawn = true;
+                    // Font size scaled to thumbnail
+                    const fontSize = Math.max(12, Math.floor((el.fontSize || 48) * Math.min(scaleX, scaleY)));
+                    ctx.font = `bold ${fontSize}px Arial`;
+                    ctx.fillStyle = el.color || '#fff';
+                    ctx.textBaseline = 'top';
+                    // Estimate element box width if not provided
+                    const estElemWidth = el.width || Math.min(srcW - (el.x || 0), (el.text.length * (el.fontSize || 48) * 0.6));
+                    const scaledElemWidth = Math.max(20, estElemWidth * scaleX);
+                    // Compute x based on alignment
+                    let drawX = (el.x || 10) * scaleX;
+                    let align = (el.align || 'left').toLowerCase();
+                    if (align === 'center') {
+                      ctx.textAlign = 'center';
+                      drawX = drawX + scaledElemWidth / 2;
+                    } else if (align === 'right') {
+                      ctx.textAlign = 'right';
+                      drawX = drawX + scaledElemWidth - 4;
+                    } else {
+                      ctx.textAlign = 'left';
+                      drawX = drawX + 4;
+                    }
+                    const drawY = Math.max(4, Math.min(thumbH - 20, (el.y || 10) * scaleY));
+                    // Truncate text to avoid overflow
+                    let txt = el.text;
+                    // Measure and trim to fit scaledElemWidth
+                    if (ctx.measureText(txt).width > scaledElemWidth) {
+                      while (txt.length > 0 && ctx.measureText(txt + '...').width > scaledElemWidth) {
+                        txt = txt.slice(0, -1);
+                      }
+                      txt = txt + '...';
+                    }
+                    ctx.fillText(txt, drawX, drawY);
+                    // reset textAlign to default for other elements
+                    ctx.textAlign = 'start';
+                  }
+                });
+              }
+              if (!drawn) {
+                ctx.font = 'bold 28px Arial';
+                ctx.fillStyle = '#888';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('No Preview', thumbW/2, thumbH/2);
+              }
+            }, 0);
           } else {
             // Display text slide
             const slideText = typeof slideData === 'object' ? slideData.content : slideData;
             content.textContent = slideText;
           }
-          
           thumbnail.appendChild(number);
           thumbnail.appendChild(content);
           thumbnail.onclick = () => jumpToSlide(i);
-          
           thumbnailsContainer.appendChild(thumbnail);
         }
       }
@@ -733,8 +957,18 @@
         // Update slide dots and thumbnails
         updateSlideDots();
         
-        // Check if slide is text or image
-        if (typeof slideData === 'object' && slideData.type === 'image') {
+        // Check slide type
+        if (typeof slideData === 'object' && slideData.type === 'visual') {
+          // Send visual slide with elements
+          const payload = { 
+            type: 'visual', 
+            elements: slideData.elements,
+            slideIndex: currentIndex, 
+            totalSlides: currentSlides.length 
+          };
+          console.log('Control sending visual slide to projector:', payload);
+          ipcRenderer.send('show-slide', payload);
+        } else if (typeof slideData === 'object' && slideData.type === 'image') {
           // Send image path to projector
           const payload = { 
             type: 'image', 
@@ -840,16 +1074,42 @@
         }
       }
 
-      // Font size control functions
+      // Font size control functions - when editor is open, operate on editor elements
       function increaseFontSize() {
+        const editorModal = document.getElementById('visualEditorModal');
+        const fontInput = document.getElementById('fontSize');
+        if (editorModal && editorModal.style.display === 'block' && fontInput) {
+          let val = parseInt(fontInput.value) || 48;
+          val = Math.min(300, val + 2);
+          fontInput.value = val;
+          updateSelectedElement();
+          return;
+        }
         ipcRenderer.send('adjust-font-size', 'increase');
       }
 
       function decreaseFontSize() {
+        const editorModal = document.getElementById('visualEditorModal');
+        const fontInput = document.getElementById('fontSize');
+        if (editorModal && editorModal.style.display === 'block' && fontInput) {
+          let val = parseInt(fontInput.value) || 48;
+          val = Math.max(8, val - 2);
+          fontInput.value = val;
+          updateSelectedElement();
+          return;
+        }
         ipcRenderer.send('adjust-font-size', 'decrease');
       }
 
       function resetFontSize() {
+        const editorModal = document.getElementById('visualEditorModal');
+        const fontInput = document.getElementById('fontSize');
+        if (editorModal && editorModal.style.display === 'block' && fontInput) {
+          const val = 48;
+          fontInput.value = val;
+          updateSelectedElement();
+          return;
+        }
         ipcRenderer.send('adjust-font-size', 'reset');
       }
 
@@ -904,6 +1164,19 @@
 
       // Keyboard shortcuts
       document.addEventListener('keydown', (e) => {
+        // Check if visual editor is open
+        const editorModal = document.getElementById('visualEditorModal');
+        const isEditorOpen = editorModal && editorModal.style.display === 'block';
+        
+        // If visual editor is open and user is editing text, allow normal spacebar behavior
+        if (isEditorOpen) {
+          const activeElement = document.activeElement;
+          if (activeElement && activeElement.classList.contains('text-element')) {
+            // User is editing text in visual editor, allow spacebar
+            return;
+          }
+        }
+        
         if (e.key === 'ArrowRight' || e.key === ' ') {
           e.preventDefault();
           nextSlide();
@@ -932,6 +1205,106 @@
       let currentEditingService = null;
       let editingVisualSlideIndex = -1;
       let editingVisualSlide = null;
+      
+      // Undo/Redo functionality
+      let undoStack = [];
+      let redoStack = [];
+      
+      // Save current state for undo
+      function saveStateForUndo() {
+        // Create a deep copy of current state
+        const state = {
+          elements: editorElements.map(el => ({...el})),
+          elementIdCounter: elementIdCounter
+        };
+        undoStack.push(state);
+        // Limit undo stack to 50 actions
+        if (undoStack.length > 50) {
+          undoStack.shift();
+        }
+        // Clear redo stack when new action is performed
+        redoStack = [];
+        console.log('State saved for undo. Stack size:', undoStack.length);
+      }
+      
+      // Undo last action
+      function undo() {
+        if (undoStack.length === 0) {
+          console.log('Nothing to undo');
+          return;
+        }
+        
+        // Save current state to redo stack
+        const currentState = {
+          elements: editorElements.map(el => ({...el})),
+          elementIdCounter: elementIdCounter
+        };
+        redoStack.push(currentState);
+        
+        // Restore previous state
+        const previousState = undoStack.pop();
+        restoreState(previousState);
+        console.log('Undo performed. Undo stack:', undoStack.length, 'Redo stack:', redoStack.length);
+      }
+      
+      // Redo last undone action
+      function redo() {
+        if (redoStack.length === 0) {
+          console.log('Nothing to redo');
+          return;
+        }
+        
+        // Save current state to undo stack
+        const currentState = {
+          elements: editorElements.map(el => ({...el})),
+          elementIdCounter: elementIdCounter
+        };
+        undoStack.push(currentState);
+        
+        // Restore next state
+        const nextState = redoStack.pop();
+        restoreState(nextState);
+        console.log('Redo performed. Undo stack:', undoStack.length, 'Redo stack:', redoStack.length);
+      }
+      
+      // Restore state from snapshot
+      function restoreState(state) {
+        // Clear current elements
+        clearCanvas();
+        
+        // Restore element counter
+        elementIdCounter = state.elementIdCounter;
+        
+        // Restore elements
+        editorElements = state.elements.map(el => ({...el}));
+        
+        // Re-render all elements
+        const canvas = document.getElementById('editorCanvas');
+        editorElements.forEach(elemData => {
+          const element = document.createElement('div');
+          element.className = 'text-element';
+          element.id = elemData.id;
+          element.textContent = elemData.text;
+          element.style.left = elemData.x + 'px';
+          element.style.top = elemData.y + 'px';
+          element.style.fontSize = elemData.fontSize + 'px';
+          element.style.color = elemData.color;
+          element.style.textAlign = elemData.align;
+          element.contentEditable = true;
+          
+          // Add event listeners
+          element.addEventListener('mousedown', startDrag);
+          element.addEventListener('click', selectElement);
+          element.addEventListener('dblclick', enterEditMode);
+          element.addEventListener('input', updateElementText);
+          element.addEventListener('blur', finishEditing);
+          
+          canvas.appendChild(element);
+        });
+        
+        // Clear selection
+        selectedElement = null;
+      }
 
       // Listen for open visual editor message from list window
       ipcRenderer.on('open-visual-editor', (_, data) => {
@@ -951,6 +1324,31 @@
         openVisualEditor();
       });
 
+      // Helper function to clear canvas while preserving snap guides
+      function clearCanvas() {
+        const canvas = document.getElementById('editorCanvas');
+        const elements = canvas.querySelectorAll('.text-element');
+        elements.forEach(el => el.remove());
+        
+        // Ensure snap guides exist
+        let snapGuideH = document.getElementById('snapGuideHorizontal');
+        let snapGuideV = document.getElementById('snapGuideVertical');
+        
+        if (!snapGuideH) {
+          snapGuideH = document.createElement('div');
+          snapGuideH.id = 'snapGuideHorizontal';
+          snapGuideH.className = 'snap-guide horizontal';
+          canvas.appendChild(snapGuideH);
+        }
+        
+        if (!snapGuideV) {
+          snapGuideV = document.createElement('div');
+          snapGuideV.id = 'snapGuideVertical';
+          snapGuideV.className = 'snap-guide vertical';
+          canvas.appendChild(snapGuideV);
+        }
+      }
+
       // Open Visual Editor
       function openVisualEditor() {
         document.getElementById('visualEditorModal').style.display = 'block';
@@ -958,13 +1356,27 @@
         // Clear previous content
         editorElements = [];
         selectedElement = null;
-        document.getElementById('editorCanvas').innerHTML = '';
+        clearCanvas();
         elementIdCounter = 0;
+        
+        // Clear undo/redo stacks
+        undoStack = [];
+        redoStack = [];
         
         // If editing existing slide (any type), load its content
         if (editingVisualSlide) {
           console.log('Loading existing slide elements:', editingVisualSlide);
           loadExistingVisualSlide();
+        }
+        // Initialize toolbar font size to default or to first element's fontSize
+        const fontInput = document.getElementById('fontSize');
+        if (fontInput) {
+          let defaultSize = 48;
+          if (editingVisualSlide && editingVisualSlide.elements && editingVisualSlide.elements.length > 0) {
+            const first = editingVisualSlide.elements[0];
+            if (first && first.fontSize) defaultSize = first.fontSize;
+          }
+          fontInput.value = defaultSize;
         }
       }
 
@@ -973,13 +1385,19 @@
         document.getElementById('visualEditorModal').style.display = 'none';
         editorElements = [];
         selectedElement = null;
-        document.getElementById('editorCanvas').innerHTML = '';
+        clearCanvas();
         editingVisualSlideIndex = -1;
         editingVisualSlide = null;
+        
+        // Clear undo/redo stacks
+        undoStack = [];
+        redoStack = [];
       }
 
       // Add Text Element
       function addTextElement() {
+        saveStateForUndo(); // Save state before adding element
+        
         const canvas = document.getElementById('editorCanvas');
         const element = document.createElement('div');
         element.className = 'text-element';
@@ -987,7 +1405,9 @@
         element.textContent = 'Click to edit';
         element.style.left = '50px';
         element.style.top = '50px';
-        element.style.fontSize = '48px';
+        const toolbarFont = document.getElementById('fontSize');
+        const initialFont = (toolbarFont && toolbarFont.value) ? parseInt(toolbarFont.value) : 48;
+        element.style.fontSize = initialFont + 'px';
         element.style.color = '#ffffff';
         element.style.textAlign = 'center';
         element.contentEditable = true; // Make directly editable
@@ -996,6 +1416,7 @@
         // Add event listeners
         element.addEventListener('mousedown', startDrag);
         element.addEventListener('click', selectElement);
+        element.addEventListener('dblclick', enterEditMode);
         element.addEventListener('input', updateElementText);
         element.addEventListener('blur', finishEditing);
         
@@ -1005,12 +1426,14 @@
           text: element.textContent,
           x: 50,
           y: 50,
-          fontSize: 48,
+          fontSize: initialFont,
           color: '#ffffff',
           align: 'center'
         });
         
         selectElement({ target: element });
+        // Start in editing mode for new elements
+        element.classList.add('editing');
         element.focus(); // Focus for immediate editing
       }
 
@@ -1028,25 +1451,50 @@
           document.getElementById('textColor').value = rgbToHex(selectedElement.style.color);
         }
       }
+      
+      // Enter editing mode on double-click
+      function enterEditMode(e) {
+        if (e.target.classList.contains('text-element')) {
+          e.target.classList.add('editing');
+          e.target.focus();
+          // Select all text for easy replacement
+          const range = document.createRange();
+          range.selectNodeContents(e.target);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+      
+      // Exit editing mode
+      function exitEditMode(element) {
+        if (element && element.classList.contains('text-element')) {
+          element.classList.remove('editing');
+        }
+      }
 
       // Start Drag
       function startDrag(e) {
         if (e.target.classList.contains('text-element')) {
-          // If not holding Shift, allow text edit/caret and don't drag
-          if (!e.shiftKey) {
-            // focus the element for editing
-            e.target.focus();
-            return; // do not start dragging
+          // Check if element is in editing mode
+          if (e.target.classList.contains('editing')) {
+            // Already editing, allow text interaction
+            return;
           }
 
+          // Save state before dragging
+          saveStateForUndo();
+          
+          // Start dragging
           isDragging = true;
           selectedElement = e.target;
           selectElement(e);
           
           const rect = selectedElement.getBoundingClientRect();
           const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
-          dragOffsetX = e.clientX - rect.left + canvasRect.left;
-          dragOffsetY = e.clientY - rect.top + canvasRect.top;
+          // Calculate offset as the mouse position relative to the element's top-left
+          dragOffsetX = e.clientX - rect.left;
+          dragOffsetY = e.clientY - rect.top;
           
           document.addEventListener('mousemove', drag);
           document.addEventListener('mouseup', stopDrag);
@@ -1059,12 +1507,39 @@
       function drag(e) {
         if (isDragging && selectedElement) {
           const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
+          // Calculate new position: mouse position relative to canvas minus the offset
           let x = e.clientX - canvasRect.left - dragOffsetX;
           let y = e.clientY - canvasRect.top - dragOffsetY;
           
           // Keep within bounds
           x = Math.max(0, Math.min(x, canvasRect.width - selectedElement.offsetWidth));
           y = Math.max(0, Math.min(y, canvasRect.height - selectedElement.offsetHeight));
+          
+          // Snap to center functionality
+          const snapThreshold = 15; // pixels
+          const canvasCenterX = canvasRect.width / 2;
+          const canvasCenterY = canvasRect.height / 2;
+          const elementCenterX = x + selectedElement.offsetWidth / 2;
+          const elementCenterY = y + selectedElement.offsetHeight / 2;
+          
+          const snapGuideH = document.getElementById('snapGuideHorizontal');
+          const snapGuideV = document.getElementById('snapGuideVertical');
+          
+          // Check horizontal center snap
+          if (Math.abs(elementCenterY - canvasCenterY) < snapThreshold) {
+            y = canvasCenterY - selectedElement.offsetHeight / 2;
+            snapGuideH.classList.add('visible');
+          } else {
+            snapGuideH.classList.remove('visible');
+          }
+          
+          // Check vertical center snap
+          if (Math.abs(elementCenterX - canvasCenterX) < snapThreshold) {
+            x = canvasCenterX - selectedElement.offsetWidth / 2;
+            snapGuideV.classList.add('visible');
+          } else {
+            snapGuideV.classList.remove('visible');
+          }
           
           selectedElement.style.left = x + 'px';
           selectedElement.style.top = y + 'px';
@@ -1083,6 +1558,12 @@
         isDragging = false;
         document.removeEventListener('mousemove', drag);
         document.removeEventListener('mouseup', stopDrag);
+        
+        // Hide snap guides when drag stops
+        const snapGuideH = document.getElementById('snapGuideHorizontal');
+        const snapGuideV = document.getElementById('snapGuideVertical');
+        if (snapGuideH) snapGuideH.classList.remove('visible');
+        if (snapGuideV) snapGuideV.classList.remove('visible');
       }
 
       // Update element text when content changes
@@ -1101,6 +1582,8 @@
         if (elemData) {
           elemData.text = element.textContent;
         }
+        // Exit editing mode
+        exitEditMode(element);
       }
 
       // Update Selected Element
@@ -1108,22 +1591,40 @@
         if (selectedElement) {
           const fontSize = document.getElementById('fontSize').value;
           const textColor = document.getElementById('textColor').value;
-          
+          // Preserve visual center when changing font size
+          const oldWidth = selectedElement.offsetWidth;
+          const oldLeft = parseFloat(selectedElement.style.left) || 0;
+          const align = selectedElement.style.textAlign || 'center';
+
           selectedElement.style.fontSize = fontSize + 'px';
           selectedElement.style.color = textColor;
+
+          // After font change, compute new width and adjust left to keep centered/right alignment visually stable
+          const newWidth = selectedElement.offsetWidth;
+          const delta = newWidth - oldWidth;
+          if (align === 'center') {
+            // Move left by half the width increase so center remains at same position
+            selectedElement.style.left = (oldLeft - delta / 2) + 'px';
+          } else if (align === 'right') {
+            // Move left by full delta so right edge stays anchored
+            selectedElement.style.left = (oldLeft - delta) + 'px';
+          }
           
           // Update in elements array
           const elemData = editorElements.find(el => el.id === selectedElement.id);
           if (elemData) {
             elemData.fontSize = parseInt(fontSize);
             elemData.color = textColor;
+            elemData.x = parseFloat(selectedElement.style.left) || elemData.x;
           }
         }
       }
 
-      // Align Text
+      // Align Text (inside the text box)
       function alignText(alignment) {
         if (selectedElement) {
+          saveStateForUndo(); // Save state before aligning
+          
           selectedElement.style.textAlign = alignment;
           const elemData = editorElements.find(el => el.id === selectedElement.id);
           if (elemData) {
@@ -1132,10 +1633,78 @@
           console.log('Aligned text to:', alignment);
         }
       }
+      
+      // Align Text Box Horizontally (position on canvas)
+      function alignBoxHorizontal(alignment) {
+        if (selectedElement) {
+          saveStateForUndo(); // Save state before aligning
+          
+          const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
+          const canvasWidth = canvasRect.width;
+          const boxWidth = selectedElement.offsetWidth;
+          let newX;
+          
+          switch(alignment) {
+            case 'left':
+              newX = 0;
+              break;
+            case 'center':
+              newX = (canvasWidth - boxWidth) / 2;
+              break;
+            case 'right':
+              newX = canvasWidth - boxWidth;
+              break;
+          }
+          
+          selectedElement.style.left = newX + 'px';
+          
+          // Update in elements array
+          const elemData = editorElements.find(el => el.id === selectedElement.id);
+          if (elemData) {
+            elemData.x = newX;
+          }
+          console.log('Aligned box horizontally to:', alignment);
+        }
+      }
+      
+      // Align Text Box Vertically (position on canvas)
+      function alignBoxVertical(alignment) {
+        if (selectedElement) {
+          saveStateForUndo(); // Save state before aligning
+          
+          const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
+          const canvasHeight = canvasRect.height;
+          const boxHeight = selectedElement.offsetHeight;
+          let newY;
+          
+          switch(alignment) {
+            case 'top':
+              newY = 0;
+              break;
+            case 'middle':
+              newY = (canvasHeight - boxHeight) / 2;
+              break;
+            case 'bottom':
+              newY = canvasHeight - boxHeight;
+              break;
+          }
+          
+          selectedElement.style.top = newY + 'px';
+          
+          // Update in elements array
+          const elemData = editorElements.find(el => el.id === selectedElement.id);
+          if (elemData) {
+            elemData.y = newY;
+          }
+          console.log('Aligned box vertically to:', alignment);
+        }
+      }
 
       // Delete Selected Element
       function deleteSelectedElement() {
         if (selectedElement) {
+          saveStateForUndo(); // Save state before deleting
+          
           const index = editorElements.findIndex(el => el.id === selectedElement.id);
           if (index > -1) {
             editorElements.splice(index, 1);
@@ -1165,12 +1734,15 @@
           type: 'visual',
           service: currentEditingService,
           elements: editorElements.map(el => ({
+            type: el.type || 'text',
             text: el.text,
             x: el.x,
             y: el.y,
             fontSize: el.fontSize,
             color: el.color,
-            align: el.align
+            align: el.align,
+            width: el.width,
+            height: el.height
           }))
         };
         
@@ -1178,6 +1750,27 @@
         if (editingVisualSlideIndex >= 0) {
           slideData.editingIndex = editingVisualSlideIndex;
           console.log('Updating existing slide at index:', editingVisualSlideIndex);
+          
+          // If a visual slide is currently displayed, update Display2 immediately
+          // Check if currentSlides has a visual slide (usually only 1 slide when displaying visual)
+          if (currentSlides.length > 0 && currentSlides[currentIndex] && 
+              currentSlides[currentIndex].type === 'visual') {
+            console.log('Visual slide is currently displayed, refreshing Display2');
+            // Update the slide in currentSlides array
+            currentSlides[currentIndex] = {
+              type: 'visual',
+              elements: slideData.elements
+            };
+            // Send updated slide to projector
+            const payload = { 
+              type: 'visual', 
+              elements: slideData.elements,
+              slideIndex: currentIndex, 
+              totalSlides: currentSlides.length 
+            };
+            console.log('Sending refresh to projector:', payload);
+            ipcRenderer.send('show-slide', payload);
+          }
         } else {
           console.log('Creating new visual slide');
         }
@@ -1190,7 +1783,7 @@
         // Clear and close editor
         editorElements = [];
         selectedElement = null;
-        document.getElementById('editorCanvas').innerHTML = '';
+        clearCanvas();
         document.getElementById('visualEditorModal').style.display = 'none';
         editingVisualSlideIndex = -1;
         editingVisualSlide = null;
@@ -1222,6 +1815,7 @@
             // Add event listeners
             element.addEventListener('mousedown', startDrag);
             element.addEventListener('click', selectElement);
+            element.addEventListener('dblclick', enterEditMode);
             element.addEventListener('input', updateElementText);
             element.addEventListener('blur', finishEditing);
             
@@ -1239,6 +1833,11 @@
             });
           });
           console.log('Loaded', editorElements.length, 'visual elements');
+          // Set toolbar font size to first element's font size if present
+          const fontInput = document.getElementById('fontSize');
+          if (fontInput && editorElements.length > 0) {
+            fontInput.value = editorElements[0].fontSize || parseInt(fontInput.value) || 48;
+          }
         } else {
           // Convert other slide types to visual elements
           let elements = [];
@@ -1337,6 +1936,7 @@
             // Add event listeners
             element.addEventListener('mousedown', startDrag);
             element.addEventListener('click', selectElement);
+            element.addEventListener('dblclick', enterEditMode);
             element.addEventListener('input', updateElementText);
             element.addEventListener('blur', finishEditing);
             
@@ -1353,6 +1953,11 @@
               align: elementData.align
             });
           });
+          // Set toolbar font size to first converted element's font size
+          const fontInput2 = document.getElementById('fontSize');
+          if (fontInput2 && editorElements.length > 0) {
+            fontInput2.value = editorElements[0].fontSize || parseInt(fontInput2.value) || 48;
+          }
           
           console.log('Converted', editingVisualSlide.type, 'slide to', editorElements.length, 'visual elements');
         }
@@ -1363,7 +1968,52 @@
       document.addEventListener('keydown', (e) => {
         // Only handle keys when visual editor is open
         const editorModal = document.getElementById('visualEditorModal');
+        const saveBtn = document.getElementById('editor-save-btn');
+        // Ctrl/Cmd+S save shortcut
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+          if (editorModal && editorModal.style.display === 'block') {
+            e.preventDefault();
+            // Trigger save and give visual feedback
+            if (saveBtn) {
+              saveBtn.classList.add('flash-save');
+              setTimeout(() => saveBtn.classList.remove('flash-save'), 300);
+            }
+            saveServiceSlide();
+            return;
+          }
+        }
+
+        // Escape key: if editor open, close it; if a text element is being edited, exit edit mode instead
+        if (e.key === 'Escape') {
+          if (editorModal && editorModal.style.display === 'block') {
+            const active = document.activeElement;
+            if (active && active.classList && active.classList.contains('text-element') && active.classList.contains('editing')) {
+              // Exit editing mode for the active text element
+              active.classList.remove('editing');
+              // trigger blur to persist changes
+              try { active.blur(); } catch (err) {}
+              return;
+            }
+            e.preventDefault();
+            closeVisualEditor();
+            return;
+          }
+        }
         if (editorModal && editorModal.style.display === 'block') {
+          // Undo: Ctrl+Z
+          if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            undo();
+            return;
+          }
+          
+          // Redo: Ctrl+Y or Ctrl+Shift+Z
+          if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'Z')) {
+            e.preventDefault();
+            redo();
+            return;
+          }
+          
           if ((e.key === 'Delete' || e.key === 'Backspace')) {
             // If caret is inside an editable element, let browser handle Backspace/Delete
             const active = document.activeElement;
@@ -1404,22 +2054,35 @@
           </div>
           
           <div class="toolbar-group">
-            <span class="toolbar-label">Align:</span>
-            <button class="toolbar-btn" onclick="alignText('left')">⬅</button>
-            <button class="toolbar-btn" onclick="alignText('center')">↔</button>
-            <button class="toolbar-btn" onclick="alignText('right')">➡</button>
+            <span class="toolbar-label">Text Align:</span>
+            <button class="toolbar-btn" onclick="alignText('left')" title="Align text left">⬅ Text</button>
+            <button class="toolbar-btn" onclick="alignText('center')" title="Center text">↔ Text</button>
+            <button class="toolbar-btn" onclick="alignText('right')" title="Align text right">➡ Text</button>
           </div>
           
           <div class="toolbar-group">
-            <button class="toolbar-btn" onclick="saveServiceSlide()">💾 Save</button>
+            <span class="toolbar-label">Position Box:</span>
+            <button class="toolbar-btn" onclick="alignBoxHorizontal('left')" title="Align box to left">⬅</button>
+            <button class="toolbar-btn" onclick="alignBoxHorizontal('center')" title="Center box horizontally">↔</button>
+            <button class="toolbar-btn" onclick="alignBoxHorizontal('right')" title="Align box to right">➡</button>
+            <button class="toolbar-btn" onclick="alignBoxVertical('top')" title="Align box to top">⬆</button>
+            <button class="toolbar-btn" onclick="alignBoxVertical('middle')" title="Center box vertically">↕</button>
+            <button class="toolbar-btn" onclick="alignBoxVertical('bottom')" title="Align box to bottom">⬇</button>
+          </div>
+          
+          <div class="toolbar-group">
+            <button id="editor-save-btn" class="toolbar-btn" onclick="saveServiceSlide()">💾 Save</button>
             <button class="toolbar-btn" onclick="closeVisualEditor()">❌ Close</button>
           </div>
         </div>
 
-        <div id="editorCanvas" class="editor-canvas"></div>
+        <div id="editorCanvas" class="editor-canvas">
+          <div id="snapGuideHorizontal" class="snap-guide horizontal"></div>
+          <div id="snapGuideVertical" class="snap-guide vertical"></div>
+        </div>
 
         <div style="margin-top:10px; color:#aaa; font-size:12px;">
-          💡 <strong>Tips:</strong> Click "Add Text" to create new text elements. Click and drag to position them. Click text to edit directly. Use Delete key to remove selected elements.
+          💡 <strong>Tips:</strong> <strong>Drag</strong> to move (snaps to center). <strong>Double-click</strong> to edit. <strong>Ctrl+Z</strong> to undo, <strong>Ctrl+Y</strong> to redo. <strong>Delete</strong> to remove. Use align buttons for positioning.
         </div>
       </div>
     </div>

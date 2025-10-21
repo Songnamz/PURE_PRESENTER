@@ -648,6 +648,17 @@ ipcMain.handle('get-backgrounds', () => {
   }
 });
 
+// Return absolute path for a background filename
+ipcMain.handle('get-background-path', (event, filename) => {
+  try {
+    if (!filename) return '';
+    return path.join(BACKGROUNDS_DIR, filename);
+  } catch (err) {
+    console.error('Error resolving background path:', err);
+    return '';
+  }
+});
+
 // Get service slides
 ipcMain.handle('get-service-slides', () => {
   try {
@@ -801,6 +812,7 @@ ipcMain.on('show-slide', (event, data) => {
   let slideType = 'text';
   let text = '';
   let imagePath = '';
+  let elements = null;
   let slideIndex = 0;
   let totalSlides = 1;
   
@@ -810,6 +822,8 @@ ipcMain.on('show-slide', (event, data) => {
     slideType = data.type || 'text';
     if (slideType === 'image') {
       imagePath = data.path || '';
+    } else if (slideType === 'visual') {
+      elements = data.elements || [];
     } else {
       text = data.text || '';
     }
@@ -817,7 +831,9 @@ ipcMain.on('show-slide', (event, data) => {
     totalSlides = data.totalSlides || 1;
   }
   
-  const preview = slideType === 'image' ? `[Image: ${imagePath}]` : (text ? text.substring(0, 100) : '[empty]');
+  const preview = slideType === 'image' ? `[Image: ${imagePath}]` : 
+                  slideType === 'visual' ? `[Visual Slide with ${elements ? elements.length : 0} elements]` :
+                  (text ? text.substring(0, 100) : '[empty]');
   console.log('Received show-slide event:', preview, 'Type:', slideType, 'Index:', slideIndex);
   console.log('Projector window exists:', !!projectorWindow, 'Destroyed:', projectorWindow ? projectorWindow.isDestroyed() : 'N/A');
   
@@ -827,6 +843,10 @@ ipcMain.on('show-slide', (event, data) => {
       if (slideType === 'image') {
         const payload = { type: 'image', path: imagePath, slideIndex, totalSlides };
         console.log('Sending image payload:', payload);
+        projectorWindow.webContents.send('display-song', payload);
+      } else if (slideType === 'visual') {
+        const payload = { type: 'visual', elements, slideIndex, totalSlides };
+        console.log('Sending visual payload:', payload);
         projectorWindow.webContents.send('display-song', payload);
       } else {
         const payload = { type: 'text', text, slideIndex, totalSlides };
@@ -852,6 +872,8 @@ ipcMain.on('show-slide', (event, data) => {
   if (controlWindow && !controlWindow.isDestroyed()) {
     if (slideType === 'image') {
       controlWindow.webContents.send('display-preview', `[Image Slide ${slideIndex + 1}]`);
+    } else if (slideType === 'visual') {
+      controlWindow.webContents.send('display-preview', `[Visual Slide]`);
     } else {
       controlWindow.webContents.send('display-preview', text);
     }

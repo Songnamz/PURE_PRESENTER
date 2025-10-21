@@ -1,103 +1,306 @@
 [
   {
-    "type": "title",
-    "titleText": "สุขสันต์วันสะบาโต",
-    "titleSubtitle": "",
-    "service": "thai-church"
-  },
-  {
-    "name": "สามารถ สารภัย",
-    "position": "อธิษฐานเปิด",
-    "title": "",
-    "service": "thai-church"
-  },
-  {
-    "type": "normal",
-    "name": "Saw Tar Nge",
-    "position": "Offering",
-    "title": "",
-    "service": "thai-church"
-  },
-  {
-    "name": "Songphol Saraphai",
-    "position": "Special Song",
-    "title": "Thank You Lord",
-    "service": "thai-church"
-  },
-  {
-    "type": "bible",
-    "verseText": "เพราะว่าพระเจ้าทรงรักโลกจนได้ประทานพระบุตรองค์เดียวของพระองค์ เพื่อทุกคนที่เชื่อในพระบุตรนั้นจะไม่พินาศแต่มีชีวิตนิรันดร์",
-    "reference": "ยอห์น 3:16",
-    "service": "thai-church"
-  },
-  {
-    "type": "normal",
-    "name": "ทรงนำ สารภัย",
-    "position": "พระธรรมเทศนา",
-    "title": "พระผู้สร้าง",
-    "service": "thai-church"
-  },
-  {
     "type": "visual",
-    "service": "inter-church",
+    "service": "vespers",
     "elements": [
       {
-        "text": "HiHappy Sabbath",
-        "x": 100,
-        "y": 200,
+        "type": "text",
+        "text": "Vespers",
+        "x": 368.1000061035156,
+        "y": 242.10000610351562,
         "fontSize": 72,
         "color": "#ffffff",
         "align": "center"
       }
     ],
     "position": "Visual Slide",
-    "name": "HiHappy Sabbath...",
+    "name": "Vespers...",
     "title": ""
   },
   {
-    "type": "normal",
-    "name": "Sabbath School Classes",
-    "position": "Lesson Study",
-    "title": "Q4 L03 – “Memorials of Grace”",
-    "service": "inter-church"
+    "type": "visual",
+    "service": "inter-church",
+    "elements": [
+      {
+        "text": "Special Music",
+        "x": 275.1000061035156,
+        "y": 143.79998779296875,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "text": "Songnam Saraphai",
+        "x": 291.1000061035156,
+        "y": 344.6000061035156,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "Visual Slide",
+    "name": "Special Music...",
+    "title": ""
   },
   {
-    "type": "normal",
-    "name": "Thanawat",
-    "position": "Special Song",
-    "title": "",
-    "service": "inter-church"
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "777 Prayer",
+        "x": 322.1000061035156,
+        "y": 194.88751220703125,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "type": "text",
+        "text": "Dal Za Kap",
+        "x": 376.1000061035156,
+        "y": 357.30001068115234,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "777 Prayer...",
+    "title": ""
   },
   {
-    "type": "bible",
-    "verseText": "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life",
-    "reference": "John 3:16",
-    "service": "inter-church"
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Praise and Worship",
+        "x": 185.10000610351562,
+        "y": 196.48748779296875,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "type": "text",
+        "text": "Agasio & Friends",
+        "x": 299.1000061035156,
+        "y": 358.8999938964844,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "Praise and Worship...",
+    "title": ""
   },
   {
-    "type": "normal",
-    "name": "Songnam Saraphai",
-    "position": "Sermon",
-    "title": "The Love of God",
-    "service": "inter-church"
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Opening Prayer",
+        "x": 242.60000610351562,
+        "y": 198.07501220703125,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "type": "text",
+        "text": "Agasio Manut Yel",
+        "x": 306.6000061035156,
+        "y": 358.8999938964844,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "Opening Prayer...",
+    "title": ""
   },
   {
-    "type": "title",
-    "titleText": "Vespers",
-    "titleSubtitle": "",
-    "service": "vespers"
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Welcome",
+        "x": 342.6000061035156,
+        "y": 199.67498779296875,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "type": "text",
+        "text": "Adam Anak Akiw",
+        "x": 310.6000061035156,
+        "y": 358.8999938964844,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "Welcome...",
+    "title": ""
   },
   {
-    "type": "normal",
-    "name": "Songnam Saraphai",
-    "position": "Special Song",
-    "title": "",
-    "service": "vespers"
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Special Song",
+        "x": 286.6000061035156,
+        "y": 201.26251220703125,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "type": "text",
+        "text": "Kim & Siam",
+        "x": 365.6000061035156,
+        "y": 358.8999938964844,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "Special Song...",
+    "title": ""
   },
   {
-    "type": "title",
-    "titleText": "Combined Sabbath Worship Service",
-    "titleSubtitle": "",
-    "service": "combined-church"
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Message",
+        "x": 350.1000061035156,
+        "y": 161.45001220703125,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "type": "text",
+        "text": "Pual Rothwel De Jesus",
+        "x": 255.60000610351562,
+        "y": 360.5000305175781,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "right"
+      },
+      {
+        "type": "text",
+        "text": "\"Spiritual First Aid: God's Remedy for a Broken Soul\"",
+        "x": 76.60000610351562,
+        "y": 266.1000061035156,
+        "fontSize": 36,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "Message...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Jeremiah 30:17",
+        "x": 253.10000610351562,
+        "y": 141.8625030517578,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "type": "text",
+        "text": "\"For I will restore health to you, and your wounds I will heal, declares the Lord.\"",
+        "x": 3.600006103515625,
+        "y": 278.6875,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "Jeremiah 30:17...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Closing Prayer",
+        "x": 262.6000061035156,
+        "y": 202.86248779296875,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "type": "text",
+        "text": "Paul Rothwell De Jesus",
+        "x": 250.60000610351562,
+        "y": 358.8999938964844,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "Closing Prayer...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "combined-church",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Combined SabbathWorship Service",
+        "x": 184.60000610351562,
+        "y": 146.60000610351562,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "Combined SabbathWorship Servic...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "thai-church",
+    "elements": [
+      {
+        "type": "text",
+        "text": "สุขสันต์วันสะบาโต",
+        "x": 222.60000610351562,
+        "y": 223.60000610351562,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "สุขสันต์วันสะบาโต...",
+    "title": ""
   }
 ]
