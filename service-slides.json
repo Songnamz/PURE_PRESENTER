@@ -193,8 +193,8 @@
       {
         "type": "text",
         "text": "Pual Rothwel De Jesus",
-        "x": 255.60000610351562,
-        "y": 360.5000305175781,
+        "x": 255.5,
+        "y": 362.5,
         "fontSize": 48,
         "color": "#ffffff",
         "align": "right"
@@ -242,33 +242,6 @@
   },
   {
     "type": "visual",
-    "service": "vespers",
-    "elements": [
-      {
-        "type": "text",
-        "text": "Closing Prayer",
-        "x": 262.6000061035156,
-        "y": 202.86248779296875,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
-      },
-      {
-        "type": "text",
-        "text": "Paul Rothwell De Jesus",
-        "x": 250.60000610351562,
-        "y": 358.8999938964844,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
-      }
-    ],
-    "position": "",
-    "name": "Closing Prayer...",
-    "title": ""
-  },
-  {
-    "type": "visual",
     "service": "combined-church",
     "elements": [
       {
@@ -301,6 +274,33 @@
     ],
     "position": "",
     "name": "สุขสันต์วันสะบาโต...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Closing Prayer",
+        "x": 338.5,
+        "y": 185,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      },
+      {
+        "type": "text",
+        "text": "Pual Rothwel De Jesus",
+        "x": 255.5,
+        "y": 332,
+        "fontSize": 48,
+        "color": "#ffffff",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "Closing Prayer...",
     "title": ""
   }
 ]

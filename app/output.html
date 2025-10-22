@@ -361,24 +361,10 @@
             // Estimate element width in vw if width not provided (approx char * font-size * factor)
             const estElemWidthVW = Math.min(100 - scaledX, (text.length * scaledFontSize * 0.55));
 
-            // Positioning: anchor based on alignment so resizing keeps visual center
-            let leftPos = scaledX; // default left
-            let transform = 'translate(-0%, -50%)';
-            if (align === 'center') {
-              // center by moving left to center point and translate -50%
-              leftPos = scaledX + estElemWidthVW / 2;
-              transform = 'translate(-50%, -50%)';
-            } else if (align === 'right') {
-              // right-align: anchor to right edge
-              leftPos = scaledX + estElemWidthVW;
-              transform = 'translate(-100%, -50%)';
-            } else {
-              // left-align: keep left as-is, vertically center
-              leftPos = scaledX;
-              transform = 'translate(0%, -50%)';
-            }
-
-            html += `<div style="position:absolute; left:${leftPos}vw; top:${scaledY}vh; transform:${transform}; transform-origin:center center; font-size:${scaledFontSize}vw; color:${color}; text-align:${align}; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); white-space:pre-wrap; max-width:${estElemWidthVW}vw; font-family:${fontCSS};">${text}</div>`;
+            // Positioning: always anchor at top-left, vertically center
+            let leftPos = scaledX;
+            // Remove vertical centering so top-left matches editor
+            html += `<div style="position:absolute; left:${leftPos}vw; top:${scaledY}vh; font-size:${scaledFontSize}vw; color:${color}; text-align:${align}; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); white-space:pre-wrap; max-width:${estElemWidthVW}vw; font-family:${fontCSS};">${text}</div>`;
           });
           
           html += '</div>';
