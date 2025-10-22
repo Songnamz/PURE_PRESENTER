@@ -43,11 +43,85 @@
         return testWidth !== baselineWidth;
       }
       
-      // Declare global variables at the top
-      let fontSizeMultiplier = 1.0;
-      let currentSlideData = null;
-      let currentFontFamily = 'Arial';
-      let originalFontSizes = new Map();
+  // Declare global variables at the top
+  let fontSizeMultiplier = 1.0;
+  let currentSlideData = null;
+  let currentFontFamily = 'Arial';
+  let originalFontSizes = new Map();
+      // Debug overlay (temporary) - set to true to show center marker and bounding box
+      // Default false so overlay doesn't show unless toggled
+      let debugOverlay = false;
+
+      // Toggle debug overlay with Ctrl/Cmd+I
+      window.addEventListener('keydown', (e) => {
+        // Ctrl+I (Windows/Linux) or Meta+I (Cmd on macOS)
+        const isCtrlI = (e.ctrlKey || e.metaKey) && (e.key && e.key.toLowerCase() === 'i' || e.keyCode === 73);
+        if (isCtrlI) {
+          e.preventDefault();
+          debugOverlay = !debugOverlay;
+          if (!debugOverlay) {
+            const old = document.getElementById('debug-overlay');
+            if (old) old.remove();
+          } else {
+            // If service text present, create overlay immediately
+            const inner = document.getElementById('service-text-inner');
+            if (inner) {
+              // create overlay similar to render-time overlay
+              const old = document.getElementById('debug-overlay');
+              if (old) old.remove();
+              const overlay = document.createElement('div');
+              overlay.id = 'debug-overlay';
+              overlay.style.position = 'fixed';
+              overlay.style.left = '0';
+              overlay.style.top = '0';
+              overlay.style.width = '100vw';
+              overlay.style.height = '100vh';
+              overlay.style.pointerEvents = 'none';
+              overlay.style.zIndex = '100000';
+
+              const center = document.createElement('div');
+              center.style.position = 'absolute';
+              center.style.left = '50%';
+              center.style.top = '50%';
+              center.style.width = '12px';
+              center.style.height = '12px';
+              center.style.marginLeft = '-6px';
+              center.style.marginTop = '-6px';
+              center.style.borderRadius = '50%';
+              center.style.background = 'red';
+              center.style.opacity = '0.8';
+              overlay.appendChild(center);
+              document.body.appendChild(overlay);
+
+              setTimeout(() => {
+                const rect = inner.getBoundingClientRect();
+                const box = document.createElement('div');
+                box.style.position = 'fixed';
+                box.style.left = rect.left + 'px';
+                box.style.top = rect.top + 'px';
+                box.style.width = rect.width + 'px';
+                box.style.height = rect.height + 'px';
+                box.style.border = '2px dashed yellow';
+                box.style.boxSizing = 'border-box';
+                box.style.pointerEvents = 'none';
+                box.style.zIndex = '100001';
+                overlay.appendChild(box);
+
+                const ic = document.createElement('div');
+                ic.style.position = 'absolute';
+                ic.style.left = (rect.width/2 - 4) + 'px';
+                ic.style.top = (rect.height/2 - 4) + 'px';
+                ic.style.width = '8px';
+                ic.style.height = '8px';
+                ic.style.background = 'blue';
+                ic.style.borderRadius = '50%';
+                ic.style.opacity = '0.9';
+                box.appendChild(ic);
+              }, 10);
+            }
+          }
+        }
+      });
       
       // Helper function to format font family for CSS
       function getFontFamilyCSS(fontName) {
@@ -341,7 +415,7 @@
           let html = '<div style="position:relative; width:100vw; height:100vh; overflow:hidden;">';
           
           // Render each text element
-          elements.forEach((element) => {
+          elements.forEach((element, idx) => {
             const text = element.text || '';
             const x = element.x || 0;
             const y = element.y || 0;
@@ -364,11 +438,89 @@
             // Positioning: always anchor at top-left, vertically center
             let leftPos = scaledX;
             // Remove vertical centering so top-left matches editor
-            html += `<div style="position:absolute; left:${leftPos}vw; top:${scaledY}vh; font-size:${scaledFontSize}vw; color:${color}; text-align:${align}; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); white-space:pre-wrap; max-width:${estElemWidthVW}vw; font-family:${fontCSS};">${text}</div>`;
+            // Estimate element size at base font (in editor px) to compute center anchor
+            const editorW = 1000;
+            const editorH = 600;
+            const vwPx = window.innerWidth;
+            const vhPx = window.innerHeight;
+            const baseFontPx = (fontSize || 48); // element.fontSize in px
+            const chars = (text || '').length || 1;
+            const estWidthPxBase = Math.min(editorW - (element.x || 0), chars * baseFontPx * 0.6);
+            const lines = (text || '').split('\n').length;
+            const estHeightPxBase = baseFontPx * lines * 1.2;
+
+            // Compute center in editor pixels, then map to viewport pixels
+            const centerEditorX = (element.x || 0) + estWidthPxBase / 2;
+            const centerEditorY = (element.y || 0) + estHeightPxBase / 2;
+            const centerPxX = centerEditorX * (vwPx / editorW);
+            const centerPxY = centerEditorY * (vhPx / editorH);
+
+            // Create absolutely positioned element anchored at its center (px coordinates)
+            html += `<div id=\"visual-el-${idx}\" style=\"position:absolute; left:${centerPxX}px; top:${centerPxY}px; transform: translate(-50%, -50%); font-size:${scaledFontSize}vw; color:${color}; text-align:${align}; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); white-space:pre-wrap; max-width:${estElemWidthVW}vw; font-family:${fontCSS};\">${text}</div>`;
           });
           
           html += '</div>';
           lyricsDiv.innerHTML = html;
+          // Debug overlay for visual elements
+          if (debugOverlay) {
+            const old = document.getElementById('debug-overlay');
+            if (old) old.remove();
+            const overlay = document.createElement('div');
+            overlay.id = 'debug-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.left = '0';
+            overlay.style.top = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.pointerEvents = 'none';
+            overlay.style.zIndex = '100000';
+
+            const center = document.createElement('div');
+            center.style.position = 'absolute';
+            center.style.left = '50%';
+            center.style.top = '50%';
+            center.style.width = '12px';
+            center.style.height = '12px';
+            center.style.marginLeft = '-6px';
+            center.style.marginTop = '-6px';
+            center.style.borderRadius = '50%';
+            center.style.background = 'red';
+            center.style.opacity = '0.8';
+            overlay.appendChild(center);
+            document.body.appendChild(overlay);
+
+            // draw bounding boxes for each visual element
+            setTimeout(() => {
+              elements.forEach((el, i) => {
+                const dom = document.getElementById('visual-el-' + i);
+                if (dom) {
+                  const rect = dom.getBoundingClientRect();
+                  const box = document.createElement('div');
+                  box.style.position = 'fixed';
+                  box.style.left = rect.left + 'px';
+                  box.style.top = rect.top + 'px';
+                  box.style.width = rect.width + 'px';
+                  box.style.height = rect.height + 'px';
+                  box.style.border = '2px dashed yellow';
+                  box.style.boxSizing = 'border-box';
+                  box.style.pointerEvents = 'none';
+                  box.style.zIndex = '100001';
+                  overlay.appendChild(box);
+
+                  const ic = document.createElement('div');
+                  ic.style.position = 'absolute';
+                  ic.style.left = (rect.width/2 - 4) + 'px';
+                  ic.style.top = (rect.height/2 - 4) + 'px';
+                  ic.style.width = '8px';
+                  ic.style.height = '8px';
+                  ic.style.background = 'blue';
+                  ic.style.borderRadius = '50%';
+                  ic.style.opacity = '0.9';
+                  box.appendChild(ic);
+                }
+              });
+            }, 10);
+          }
           return;
         }
         
@@ -451,46 +603,83 @@
           // when font-size changes. This mirrors the hymnal/title layout which centers
           // content using flexbox rather than absolute positioning.
           lyricsDiv.style.background = 'transparent';
-          lyricsDiv.style.padding = '3vw';
+          lyricsDiv.style.padding = '0';
 
-          let html = '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">';
-          html += '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; box-sizing:border-box; max-width:95vw; padding:0 2.5vw;">';
-
-          lines.forEach((line, index) => {
-            let baseFontSize, content, marginBottom, marginTop;
-
-            if (index === 0) {
-              baseFontSize = 8;
-              content = line;
-              marginBottom = '0';
-              marginTop = '0';
-            } else if (index === 1 && lineCount === 3) {
-              baseFontSize = 6;
-              content = `"${line}"`;
-              marginBottom = '3vw';
-              marginTop = '2vw';
-            } else if (index === 1 && lineCount === 2) {
-              baseFontSize = 6;
-              content = line;
-              marginTop = '2vw';
-              marginBottom = '0';
-            } else {
-              baseFontSize = 6;
-              content = line;
-              marginBottom = '0';
-              marginTop = '0';
-            }
-
-            const adjustedFontSize = baseFontSize * fontSizeMultiplier;
+            let serviceText = lines.join('<br>');
+            let baseFontSize = 8;
+            if (lineCount > 1) baseFontSize = 6;
             const fontCSS = getFontFamilyCSS(currentFontFamily);
-            // Child lines are not given a fixed width so they size to their content and
-            // remain centered by the column flex container. This prevents asymmetric
-            // movement when font-size changes.
-            html += `<div style="font-size:${adjustedFontSize}vw; line-height:1.4; margin-bottom:${marginBottom}; margin-top:${marginTop}; font-family:${fontCSS}; font-weight: normal; text-align:center; white-space:pre-wrap;">${content}</div>`;
-          });
+            // outer wrapper centers at 50%/50% using translate; inner wrapper uses computed font-size instead of CSS scale
+            const computedFontSize = (baseFontSize * fontSizeMultiplier);
+            // Position the text element at the true center and let it grow/shrink from its center
+            let html = `<div style="width:100vw; height:100vh; position:relative;">
+              <div id="service-text-inner" style="position:absolute; left:50%; top:50%; transform: translate(-50%, -50%); white-space:pre-wrap; font-size:${computedFontSize}vw; text-align:center; line-height:1.2; font-family:${fontCSS}; max-width:95vw;">${serviceText}</div>
+            </div>`;
+            lyricsDiv.innerHTML = html;
 
-          html += '</div></div>';
-          lyricsDiv.innerHTML = html;
+            // Debug overlay: draw center marker and bounding box around service text
+            if (debugOverlay) {
+              // remove existing overlay
+              const old = document.getElementById('debug-overlay');
+              if (old) old.remove();
+              const overlay = document.createElement('div');
+              overlay.id = 'debug-overlay';
+              overlay.style.position = 'fixed';
+              overlay.style.left = '0';
+              overlay.style.top = '0';
+              overlay.style.width = '100vw';
+              overlay.style.height = '100vh';
+              overlay.style.pointerEvents = 'none';
+              overlay.style.zIndex = '100000';
+
+              // center marker
+              const center = document.createElement('div');
+              center.style.position = 'absolute';
+              center.style.left = '50%';
+              center.style.top = '50%';
+              center.style.width = '12px';
+              center.style.height = '12px';
+              center.style.marginLeft = '-6px';
+              center.style.marginTop = '-6px';
+              center.style.borderRadius = '50%';
+              center.style.background = 'red';
+              center.style.opacity = '0.8';
+              overlay.appendChild(center);
+
+              document.body.appendChild(overlay);
+
+              // bounding box around service text
+              const inner = document.getElementById('service-text-inner');
+              if (inner) {
+                // wait a tick to ensure layout updated
+                setTimeout(() => {
+                  const rect = inner.getBoundingClientRect();
+                  const box = document.createElement('div');
+                  box.style.position = 'fixed';
+                  box.style.left = rect.left + 'px';
+                  box.style.top = rect.top + 'px';
+                  box.style.width = rect.width + 'px';
+                  box.style.height = rect.height + 'px';
+                  box.style.border = '2px dashed yellow';
+                  box.style.boxSizing = 'border-box';
+                  box.style.pointerEvents = 'none';
+                  box.style.zIndex = '100001';
+                  overlay.appendChild(box);
+
+                  // inner center marker (relative to box)
+                  const ic = document.createElement('div');
+                  ic.style.position = 'absolute';
+                  ic.style.left = (rect.width/2 - 4) + 'px';
+                  ic.style.top = (rect.height/2 - 4) + 'px';
+                  ic.style.width = '8px';
+                  ic.style.height = '8px';
+                  ic.style.background = 'blue';
+                  ic.style.borderRadius = '50%';
+                  ic.style.opacity = '0.9';
+                  box.appendChild(ic);
+                }, 10);
+              }
+            }
         } else if (isBibleVerse) {
           lyricsDiv.style.background = 'transparent';
           lyricsDiv.style.padding = '3vw';
