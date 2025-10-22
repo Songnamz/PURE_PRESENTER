@@ -41,6 +41,9 @@ function createProjectorWindow() {
       const bgPath = path.join(BACKGROUNDS_DIR, global.selectedBackground);
       projectorWindow.webContents.send('update-background', bgPath);
     }
+    if (global.selectedFont) {
+      projectorWindow.webContents.send('update-font', global.selectedFont);
+    }
   });
 
   projectorWindow.on('closed', () => {
@@ -127,7 +130,7 @@ function createWindows() {
   // Project list window
   listWindow = new BrowserWindow({
     width: 400,
-    height: 813,
+    height: 1080,
     x: 0,
     y: 0,
     title: 'CHURCH PROGRAM' + windowTitleSuffix,
@@ -139,7 +142,7 @@ function createWindows() {
   // Control/Preview window - positioned right next to Project List window
   controlWindow = new BrowserWindow({
     width: 1140,
-    height: 1000,
+    height: 1080,
     x: 395,  // Just 5 pixels away from the Project List window (400 width + 5 gap)
     y: 0,
     title: 'CONTROL & PREVIEW' + windowTitleSuffix,
@@ -645,6 +648,17 @@ ipcMain.handle('get-backgrounds', () => {
   }
 });
 
+// Return absolute path for a background filename
+ipcMain.handle('get-background-path', (event, filename) => {
+  try {
+    if (!filename) return '';
+    return path.join(BACKGROUNDS_DIR, filename);
+  } catch (err) {
+    console.error('Error resolving background path:', err);
+    return '';
+  }
+});
+
 // Get service slides
 ipcMain.handle('get-service-slides', () => {
   try {
@@ -798,6 +812,7 @@ ipcMain.on('show-slide', (event, data) => {
   let slideType = 'text';
   let text = '';
   let imagePath = '';
+  let elements = null;
   let slideIndex = 0;
   let totalSlides = 1;
   
@@ -807,6 +822,8 @@ ipcMain.on('show-slide', (event, data) => {
     slideType = data.type || 'text';
     if (slideType === 'image') {
       imagePath = data.path || '';
+    } else if (slideType === 'visual') {
+      elements = data.elements || [];
     } else {
       text = data.text || '';
     }
@@ -814,7 +831,9 @@ ipcMain.on('show-slide', (event, data) => {
     totalSlides = data.totalSlides || 1;
   }
   
-  const preview = slideType === 'image' ? `[Image: ${imagePath}]` : (text ? text.substring(0, 100) : '[empty]');
+  const preview = slideType === 'image' ? `[Image: ${imagePath}]` : 
+                  slideType === 'visual' ? `[Visual Slide with ${elements ? elements.length : 0} elements]` :
+                  (text ? text.substring(0, 100) : '[empty]');
   console.log('Received show-slide event:', preview, 'Type:', slideType, 'Index:', slideIndex);
   console.log('Projector window exists:', !!projectorWindow, 'Destroyed:', projectorWindow ? projectorWindow.isDestroyed() : 'N/A');
   
@@ -825,10 +844,22 @@ ipcMain.on('show-slide', (event, data) => {
         const payload = { type: 'image', path: imagePath, slideIndex, totalSlides };
         console.log('Sending image payload:', payload);
         projectorWindow.webContents.send('display-song', payload);
+      } else if (slideType === 'visual') {
+        const payload = { type: 'visual', elements, slideIndex, totalSlides };
+        console.log('Sending visual payload:', payload);
+        projectorWindow.webContents.send('display-song', payload);
       } else {
         const payload = { type: 'text', text, slideIndex, totalSlides };
         console.log('Sending text payload:', payload);
         projectorWindow.webContents.send('display-song', payload);
+        
+        // Also ensure font is applied
+        if (global.selectedFont) {
+          console.log('Re-applying stored font:', global.selectedFont);
+          setTimeout(() => {
+            projectorWindow.webContents.send('update-font', global.selectedFont);
+          }, 100);
+        }
       }
       console.log('Message sent to projector successfully');
     } catch (err) {
@@ -841,6 +872,8 @@ ipcMain.on('show-slide', (event, data) => {
   if (controlWindow && !controlWindow.isDestroyed()) {
     if (slideType === 'image') {
       controlWindow.webContents.send('display-preview', `[Image Slide ${slideIndex + 1}]`);
+    } else if (slideType === 'visual') {
+      controlWindow.webContents.send('display-preview', `[Visual Slide]`);
     } else {
       controlWindow.webContents.send('display-preview', text);
     }
@@ -950,6 +983,435 @@ ipcMain.on('adjust-image-zoom', (event, action) => {
   if (projectorWindow && !projectorWindow.isDestroyed()) {
     projectorWindow.webContents.send('adjust-image-zoom', action);
   }
+});
+
+// Open visual editor in control window
+ipcMain.on('open-visual-editor', (event, data) => {
+  console.log('Opening visual editor for service:', data.service);
+  if (controlWindow && !controlWindow.isDestroyed()) {
+    controlWindow.webContents.send('open-visual-editor', data);
+  }
+});
+
+// Save visual slide from control window to list window
+ipcMain.on('save-visual-slide', (event, slideData) => {
+  console.log('Saving visual slide:', slideData);
+  if (listWindow && !listWindow.isDestroyed()) {
+    listWindow.webContents.send('save-visual-slide', slideData);
+  }
+});
+
+// Get available system fonts
+ipcMain.handle('get-system-fonts', async () => {
+  try {
+    const { execSync } = require('child_process');
+    let installedFonts = [];
+    
+    try {
+      // Use PowerShell to get all installed fonts from Windows Registry
+      const psCommand = `
+        $fonts = @()
+        $fonts += Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts' | 
+                  Get-Member -MemberType NoteProperty | 
+                  Select-Object -ExpandProperty Name
+        $fonts += Get-ItemProperty -Path 'HKCU:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts' -ErrorAction SilentlyContinue | 
+                  Get-Member -MemberType NoteProperty | 
+                  Select-Object -ExpandProperty Name
+        $fonts | ForEach-Object { 
+          $name = $_ -replace ' \\(TrueType\\)', '' -replace ' \\(OpenType\\)', '' -replace ' \\(Type 1\\)', ''
+          # Extract base font name before first variant keyword
+          if ($name -match '^(.+?)\\s+(Bold|Italic|Regular|Light|Medium|SemiBold|Semibold|Black|Heavy|Thin|ExtraBold|ExtraLight|Condensed|Extended|Narrow|Wide|Oblique|Demi)') {
+            $matches[1]
+          } else {
+            $name
+          }
+        } | Sort-Object -Unique
+      `;
+      
+      const result = execSync(`powershell -Command "${psCommand}"`, { 
+        encoding: 'utf8',
+        maxBuffer: 10 * 1024 * 1024,
+        windowsHide: true
+      });
+      
+      // Parse the result and clean up font names
+      installedFonts = result
+        .split('\n')
+        .map(font => font.trim())
+        .filter(font => font && !font.startsWith('PS') && font.length > 1 && !font.includes('='))
+        .filter((font, index, self) => self.indexOf(font) === index) // Remove duplicates
+        .sort((a, b) => a.localeCompare(b));
+      
+      if (installedFonts.length > 0) {
+        console.log(`Found ${installedFonts.length} installed fonts`);
+        // Log first 10 fonts for debugging
+        console.log('Sample fonts:', installedFonts.slice(0, 10).join(', '));
+        return installedFonts;
+      }
+    } catch (err) {
+      console.error('Error reading fonts from registry:', err);
+    }
+    
+    // Fallback to comprehensive list if registry reading fails
+    const commonFonts = [
+      // Standard Windows fonts
+      'Arial',
+      'Arial Black',
+      'Arial Narrow',
+      'Arial Rounded MT Bold',
+      'Bahnschrift',
+      'Calibri',
+      'Calibri Light',
+      'Cambria',
+      'Cambria Math',
+      'Candara',
+      'Comic Sans MS',
+      'Consolas',
+      'Constantia',
+      'Corbel',
+      'Courier New',
+      'Ebrima',
+      'Franklin Gothic Medium',
+      'Gabriola',
+      'Gadugi',
+      'Georgia',
+      'HoloLens MDL2 Assets',
+      'Impact',
+      'Ink Free',
+      'Javanese Text',
+      'Leelawadee UI',
+      'Lucida Console',
+      'Lucida Sans Unicode',
+      'Malgun Gothic',
+      'Microsoft Himalaya',
+      'Microsoft JhengHei',
+      'Microsoft New Tai Lue',
+      'Microsoft PhagsPa',
+      'Microsoft Sans Serif',
+      'Microsoft Tai Le',
+      'Microsoft YaHei',
+      'Microsoft Yi Baiti',
+      'MingLiU-ExtB',
+      'Mongolian Baiti',
+      'MS Gothic',
+      'MS PGothic',
+      'MS UI Gothic',
+      'MV Boli',
+      'Myanmar Text',
+      'Nirmala UI',
+      'Palatino Linotype',
+      'Segoe MDL2 Assets',
+      'Segoe Print',
+      'Segoe Script',
+      'Segoe UI',
+      'Segoe UI Black',
+      'Segoe UI Emoji',
+      'Segoe UI Historic',
+      'Segoe UI Light',
+      'Segoe UI Semibold',
+      'Segoe UI Semilight',
+      'Segoe UI Symbol',
+      'SimSun',
+      'Sitka Banner',
+      'Sitka Display',
+      'Sitka Heading',
+      'Sitka Small',
+      'Sitka Subheading',
+      'Sitka Text',
+      'Sylfaen',
+      'Symbol',
+      'Tahoma',
+      'Times New Roman',
+      'Trebuchet MS',
+      'Verdana',
+      'Webdings',
+      'Wingdings',
+      'Yu Gothic',
+      
+      // Microsoft Office fonts (often included with Office installation)
+      'Abadi',
+      'Abadi MT Condensed Light',
+      'Advent Sans Logo',
+      'Agency FB',
+      'Aharoni',
+      'Aldhabi',
+      'Algerian',
+      'Andalus',
+      'Aparajita',
+      'Arabic Typesetting',
+      'Arial',
+      'Arial Rounded MT Bold',
+      'Arial Unicode MS',
+      'Baskerville Old Face',
+      'Batang',
+      'BatangChe',
+      'Bauhaus 93',
+      'Bell MT',
+      'Berlin Sans FB',
+      'Berlin Sans FB Demi',
+      'Bernard MT Condensed',
+      'Blackadder ITC',
+      'Bodoni MT',
+      'Bodoni MT Black',
+      'Bodoni MT Condensed',
+      'Bodoni MT Poster Compressed',
+      'Book Antiqua',
+      'Bookman Old Style',
+      'Bookshelf Symbol 7',
+      'Bradley Hand ITC',
+      'Britannic Bold',
+      'Broadway',
+      'Brush Script MT',
+      'Californian FB',
+      'Calisto MT',
+      'Castellar',
+      'Centaur',
+      'Century',
+      'Century Gothic',
+      'Century Schoolbook',
+      'Chiller',
+      'Colonna MT',
+      'Cooper Black',
+      'Copperplate Gothic Bold',
+      'Copperplate Gothic Light',
+      'Curlz MT',
+      'DaunPenh',
+      'David',
+      'DFKai-SB',
+      'Dotum',
+      'DotumChe',
+      'Edwardian Script ITC',
+      'Elephant',
+      'Engravers MT',
+      'Eras Bold ITC',
+      'Eras Demi ITC',
+      'Eras Light ITC',
+      'Eras Medium ITC',
+      'Estrangelo Edessa',
+      'FangSong',
+      'Felix Titling',
+      'Footlight MT Light',
+      'Forte',
+      'FrankRuehl',
+      'Franklin Gothic Book',
+      'Franklin Gothic Demi',
+      'Franklin Gothic Demi Cond',
+      'Franklin Gothic Heavy',
+      'Franklin Gothic Medium Cond',
+      'Freestyle Script',
+      'French Script MT',
+      'Gabriola',
+      'Garamond',
+      'Gautami',
+      'Georgia',
+      'Gigi',
+      'Gill Sans MT',
+      'Gill Sans MT Condensed',
+      'Gill Sans MT Ext Condensed Bold',
+      'Gill Sans Ultra Bold',
+      'Gill Sans Ultra Bold Condensed',
+      'Gisha',
+      'Gloucester MT Extra Condensated',
+      'Goudy Old Style',
+      'Goudy Stout',
+      'Gulim',
+      'GulimChe',
+      'Gungsuh',
+      'GungsuhChe',
+      'Haettenschweiler',
+      'Harlow Solid Italic',
+      'Harrington',
+      'High Tower Text',
+      'Impact',
+      'Imprint MT Shadow',
+      'Informal Roman',
+      'Iskoola Pota',
+      'Jokerman',
+      'Juice ITC',
+      'KaiTi',
+      'Kalinga',
+      'Kartika',
+      'Khmer UI',
+      'Kokila',
+      'Kristen ITC',
+      'Kunstler Script',
+      'Lao UI',
+      'Latha',
+      'Leelawadee',
+      'Levenim MT',
+      'LiSu',
+      'Lucida Bright',
+      'Lucida Calligraphy',
+      'Lucida Fax',
+      'Lucida Handwriting',
+      'Lucida Sans',
+      'Lucida Sans Typewriter',
+      'Magneto',
+      'Maiandra GD',
+      'Malgun Gothic',
+      'Mangal',
+      'Marlett',
+      'Matura MT Script Capitals',
+      'Meiryo',
+      'Meiryo UI',
+      'Microsoft Uighur',
+      'Mincho',
+      'Miriam',
+      'Miriam Fixed',
+      'Mistral',
+      'Modern No. 20',
+      'Mongolian Baiti',
+      'Monotype Corsiva',
+      'MoolBoran',
+      'MS Gothic',
+      'MS Mincho',
+      'MS Outlook',
+      'MS PMincho',
+      'MS Reference Sans Serif',
+      'MS Reference Specialty',
+      'MT Extra',
+      'MV Boli',
+      'Narkisim',
+      'Niagara Engraved',
+      'Niagara Solid',
+      'Nyala',
+      'OCR A Extended',
+      'Old English Text MT',
+      'Onyx',
+      'Palace Script MT',
+      'Papyrus',
+      'Parchment',
+      'Perpetua',
+      'Perpetua Titling MT',
+      'Plantagenet Cherokee',
+      'Playbill',
+      'PMingLiU',
+      'PMingLiU-ExtB',
+      'Poor Richard',
+      'Pristina',
+      'Raavi',
+      'Rage Italic',
+      'Ravie',
+      'Rockwell',
+      'Rockwell Condensed',
+      'Rockwell Extra Bold',
+      'Rod',
+      'Sakkal Majalla',
+      'Script MT Bold',
+      'Segoe Script',
+      'Segoe UI Symbol',
+      'Shonar Bangla',
+      'Showcard Gothic',
+      'Shruti',
+      'SimHei',
+      'Simplified Arabic',
+      'Simplified Arabic Fixed',
+      'SimSun',
+      'SimSun-ExtB',
+      'Snap ITC',
+      'Stencil',
+      'Sylfaen',
+      'Tahoma',
+      'Tempus Sans ITC',
+      'Traditional Arabic',
+      'Trebuchet MS',
+      'Tunga',
+      'Tw Cen MT',
+      'Tw Cen MT Condensed',
+      'Tw Cen MT Condensed Extra Bold',
+      'Utsaah',
+      'Vani',
+      'Verdana',
+      'Vijaya',
+      'Viner Hand ITC',
+      'Vivaldi',
+      'Vladimir Script',
+      'Vrinda',
+      'Webdings',
+      'Wide Latin',
+      'Wingdings',
+      'Wingdings 2',
+      'Wingdings 3',
+      'YouYuan',
+      
+      // Thai fonts (Windows + Office)
+      'Angsana New',
+      'AngsanaUPC',
+      'Browallia New',
+      'BrowalliaUPC',
+      'Cordia New',
+      'CordiaUPC',
+      'DilleniaUPC',
+      'EucrosiaUPC',
+      'FreesiaUPC',
+      'IrisUPC',
+      'JasmineUPC',
+      'KodchiangUPC',
+      'Leelawadee',
+      'LilyUPC',
+      'Sakkal Majalla',
+      
+      // Additional common fonts
+      'MS Sans Serif',
+      'MS Serif',
+      'Small Fonts'
+    ];
+    
+    // Sort alphabetically for easier selection
+    return commonFonts.sort((a, b) => a.localeCompare(b));
+  } catch (err) {
+    console.error('Error getting system fonts:', err);
+    return ['Arial', 'Times New Roman', 'Verdana', 'Tahoma'];
+  }
+});
+
+// Set font on Display2
+ipcMain.on('set-font', (event, fontFamily) => {
+  console.log('=== MAIN PROCESS: SET FONT ===');
+  console.log('Received font:', fontFamily);
+  console.log('Projector window exists:', !!projectorWindow);
+  console.log('Projector window destroyed:', projectorWindow ? projectorWindow.isDestroyed() : 'N/A');
+  
+  // Store font globally first
+  global.selectedFont = fontFamily;
+  console.log('Font stored globally:', global.selectedFont);
+  
+  if (projectorWindow && !projectorWindow.isDestroyed()) {
+    console.log('Sending update-font to projector window');
+    
+    // Use executeJavaScript to directly update the font (more reliable)
+    projectorWindow.webContents.executeJavaScript(`
+      if (typeof currentFontFamily !== 'undefined') {
+        console.log('Direct JS execution - setting font to: ${fontFamily}');
+        currentFontFamily = '${fontFamily}';
+        
+        // Update initial text if visible
+        const initialText = document.getElementById('initial-text');
+        if (initialText) {
+          initialText.style.fontFamily = '"${fontFamily}", Arial, sans-serif';
+        }
+        
+        // Re-render current slide if exists
+        if (typeof currentSlideData !== 'undefined' && currentSlideData !== null) {
+          renderSlideWithFontSize(currentSlideData);
+        }
+        
+        console.log('Font applied via direct execution');
+      }
+    `).then(() => {
+      console.log('Font update executed successfully');
+    }).catch(err => {
+      console.error('Error executing font update:', err);
+    });
+    
+    // Also send the IPC message as backup
+    projectorWindow.webContents.send('update-font', fontFamily);
+    console.log('Font update sent via IPC as well');
+  } else {
+    console.log('Projector window not available yet');
+  }
+  
+  console.log('==============================');
 });
 
 app.whenReady().then(() => {
