@@ -216,31 +216,6 @@
   },
   {
     "type": "visual",
-    "service": "inter-church",
-    "elements": [
-      {
-        "text": "Special Music",
-        "x": 275.1000061035156,
-        "y": 143.79998779296875,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
-      },
-      {
-        "text": "Songnam Saraphai",
-        "x": 291.1000061035156,
-        "y": 344.6000061035156,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
-      }
-    ],
-    "position": "Visual Slide",
-    "name": "Special Music...",
-    "title": ""
-  },
-  {
-    "type": "visual",
     "service": "vespers",
     "elements": [
       {
@@ -272,42 +247,6 @@
   },
   {
     "type": "visual",
-    "service": "combined-church",
-    "elements": [
-      {
-        "type": "text",
-        "text": "Combined SabbathWorship Service",
-        "x": 184.60000610351562,
-        "y": 146.60000610351562,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
-      }
-    ],
-    "position": "",
-    "name": "Combined SabbathWorship Servic...",
-    "title": ""
-  },
-  {
-    "type": "visual",
-    "service": "thai-church",
-    "elements": [
-      {
-        "type": "text",
-        "text": "สุขสันต์วันสะบาโต",
-        "x": 222.60000610351562,
-        "y": 223.60000610351562,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
-      }
-    ],
-    "position": "",
-    "name": "สุขสันต์วันสะบาโต...",
-    "title": ""
-  },
-  {
-    "type": "visual",
     "service": "vespers",
     "elements": [
       {
@@ -335,6 +274,106 @@
     ],
     "position": "",
     "name": "Closing Prayer...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "combined-church",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Combined Sabbath Worship Service",
+        "x": 49.8339,
+        "y": 51.5464,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 69.0705,
+        "height": 31.586
+      }
+    ],
+    "position": "",
+    "name": "Combined Sabbath Worship Servi...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "assembly",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Assembly Program",
+        "x": 49.8339,
+        "y": 51.5464,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 63.8497,
+        "height": 20.6186
+      }
+    ],
+    "position": "",
+    "name": "Assembly Program...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "chapel",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Chapel Program",
+        "x": 49.8339,
+        "y": 51.5464,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 55.3364,
+        "height": 20.6186
+      }
+    ],
+    "position": "",
+    "name": "Chapel Program...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "thai-church",
+    "elements": [
+      {
+        "type": "text",
+        "text": "สุขสันต์วันสะบาโต",
+        "x": 50,
+        "y": 50,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 57.6204,
+        "height": 20.6186
+      }
+    ],
+    "position": "",
+    "name": "สุขสันต์วันสะบาโต...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "inter-church",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Happy Sabbath",
+        "x": 50,
+        "y": 50,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 52.7409,
+        "height": 20.6186
+      }
+    ],
+    "position": "",
+    "name": "Happy Sabbath...",
     "title": ""
   }
 ]
