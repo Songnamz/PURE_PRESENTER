@@ -7,7 +7,7 @@
     "start": "electron app/main.js",
     "build": "electron-builder",
     "build:win": "electron-builder --win",
-    "package": "electron-packager . \"PURE PRESENTER\" --platform=win32 --arch=x64 --out=dist --overwrite --icon=assets/AIUCHURCH.ico",
+  "package": "electron-packager . \"PURE PRESENTER\" --platform=win32 --arch=x64 --out=dist --overwrite --icon=\"assets/PURE PRESENTER.ico\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -26,7 +26,7 @@
           ]
         }
       ],
-      "icon": "assets/AIUCHURCH.ico",
+  "icon": "assets/PURE PRESENTER.ico",
       "verifyUpdateCodeSignature": false
     },
     "nsis": {
@@ -35,9 +35,9 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "PURE PRESENTER",
-      "installerIcon": "assets/AIUCHURCH.ico",
-      "uninstallerIcon": "assets/AIUCHURCH.ico",
-      "installerHeaderIcon": "assets/AIUCHURCH.ico"
+  "installerIcon": "assets/PURE PRESENTER.ico",
+  "uninstallerIcon": "assets/PURE PRESENTER.ico",
+  "installerHeaderIcon": "assets/PURE PRESENTER.ico"
     },
     "files": [
       "**/*",
