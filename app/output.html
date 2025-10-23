@@ -419,7 +419,13 @@
             const align = el.align || 'center';
             const fontCSS = getFontFamilyCSS(currentFontFamily);
 
-            html += `<div id=\"visual-el-${idx}\" style=\"position:absolute; left:${leftPct}%; top:${topPct}%; transform:translate(-50%, -50%); font-size:${fontVW}vw; color:${color}; text-align:${align}; white-space:pre-wrap; line-height:1.2; font-family:${fontCSS}; text-shadow:2px 2px 4px rgba(0,0,0,0.8);\">${text}</div>`;
+            // If element saved a width/height (percent of editor canvas), apply similar constraints on projector.
+            const elWidth = (el.width !== undefined && el.width !== null) ? el.width : null;
+            const elHeight = (el.height !== undefined && el.height !== null) ? el.height : null;
+            // Convert percent width to viewport units (approx): since canvas maps to viewport, use vw/vh directly
+            const widthStyle = elWidth ? `width:${elWidth}vw;` : '';
+            const heightStyle = elHeight ? `height:${elHeight}vh;` : '';
+            html += `<div id=\"visual-el-${idx}\" style=\"position:absolute; left:${leftPct}%; top:${topPct}%; transform:translate(-50%, -50%); ${widthStyle} ${heightStyle} font-size:${fontVW}vw; color:${color}; text-align:${align}; white-space:pre-wrap; line-height:1.2; font-family:${fontCSS}; text-shadow:2px 2px 4px rgba(0,0,0,0.8); box-sizing:border-box; overflow-wrap:break-word; word-break:break-word;\">${text}</div>`;
           });
           html += '</div>';
           lyricsDiv.innerHTML = html;

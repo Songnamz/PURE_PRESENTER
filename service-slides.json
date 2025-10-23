@@ -8,7 +8,7 @@
         "text": "Vespers",
         "x": 50,
         "y": 50,
-        "fontSize": 5,
+        "fontSize": 7.5,
         "color": "rgb(255, 255, 255)",
         "align": "center"
       }
@@ -24,24 +24,194 @@
       {
         "type": "text",
         "text": "777 Prayer",
-        "x": 50,
-        "y": 38.287,
+        "x": 49.8339,
+        "y": 41.0369,
         "fontSize": 7.5,
         "color": "rgb(255, 255, 255)",
-        "align": "center"
+        "align": "center",
+        "width": 36.9601,
+        "height": 20.6186
       },
       {
         "type": "text",
         "text": "Dal Za Kap",
-        "x": 50,
-        "y": 62.8107,
+        "x": 49.8339,
+        "y": 62.5161,
         "fontSize": 4.583333333333333,
         "color": "rgb(255, 255, 255)",
-        "align": "center"
+        "align": "center",
+        "width": 23.7749,
+        "height": 13.623
       }
     ],
     "position": "",
     "name": "777 Prayer...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Praise and Worship",
+        "x": 49.8339,
+        "y": 40.5007,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 65.407,
+        "height": 20.6186
+      },
+      {
+        "type": "text",
+        "text": "Dal Za Kap",
+        "x": 49.8339,
+        "y": 62.592,
+        "fontSize": 4.583333333333333,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 23.7749,
+        "height": 13.623
+      }
+    ],
+    "position": "",
+    "name": "Praise and Worship...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Opening Prayer",
+        "x": 49.8339,
+        "y": 41.29,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 53.4676,
+        "height": 20.6186
+      },
+      {
+        "type": "text",
+        "text": "Agasio Manut Yel",
+        "x": 49.8339,
+        "y": 61.7153,
+        "fontSize": 4.583333333333333,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 37.064,
+        "height": 13.623
+      }
+    ],
+    "position": "",
+    "name": "Opening Prayer...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Welcome",
+        "x": 49.8339,
+        "y": 40.8781,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 32.7035,
+        "height": 20.6186
+      },
+      {
+        "type": "text",
+        "text": "Adam Anak Akiw",
+        "x": 49.8339,
+        "y": 61.5772,
+        "fontSize": 4.583333333333333,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 36.2334,
+        "height": 13.623
+      }
+    ],
+    "position": "",
+    "name": "Welcome...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Special Song",
+        "x": 49.8339,
+        "y": 41.1382,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 44.2276,
+        "height": 20.6186
+      },
+      {
+        "type": "text",
+        "text": "Kim & Siam",
+        "x": 49.8339,
+        "y": 61.858,
+        "fontSize": 4.583333333333333,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 25.7475,
+        "height": 13.623
+      }
+    ],
+    "position": "",
+    "name": "Special Song...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Message",
+        "x": 49.8339,
+        "y": 36.8189,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 31.1462,
+        "height": 20.6186
+      },
+      {
+        "type": "text",
+        "text": "Donald Bapi Das",
+        "x": 49.8339,
+        "y": 69.8362,
+        "fontSize": 4.583333333333333,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 35.4028,
+        "height": 13.623
+      },
+      {
+        "type": "text",
+        "text": "\"Does God provide whatever you want!\"",
+        "x": 50,
+        "y": 50,
+        "fontSize": 3.75,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 68.1063,
+        "height": 11.782
+      }
+    ],
+    "position": "",
+    "name": "Message...",
     "title": ""
   },
   {
@@ -75,165 +245,25 @@
     "elements": [
       {
         "type": "text",
-        "text": "Praise and Worship",
-        "x": 185.10000610351562,
-        "y": 196.48748779296875,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
-      },
-      {
-        "type": "text",
-        "text": "Agasio & Friends",
-        "x": 299.1000061035156,
-        "y": 358.8999938964844,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
-      }
-    ],
-    "position": "",
-    "name": "Praise and Worship...",
-    "title": ""
-  },
-  {
-    "type": "visual",
-    "service": "vespers",
-    "elements": [
-      {
-        "type": "text",
-        "text": "Opening Prayer",
-        "x": 242.60000610351562,
-        "y": 198.07501220703125,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
-      },
-      {
-        "type": "text",
-        "text": "Agasio Manut Yel",
-        "x": 306.6000061035156,
-        "y": 358.8999938964844,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
-      }
-    ],
-    "position": "",
-    "name": "Opening Prayer...",
-    "title": ""
-  },
-  {
-    "type": "visual",
-    "service": "vespers",
-    "elements": [
-      {
-        "type": "text",
-        "text": "Welcome",
-        "x": 342.6000061035156,
-        "y": 199.67498779296875,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
-      },
-      {
-        "type": "text",
-        "text": "Adam Anak Akiw",
-        "x": 310.6000061035156,
-        "y": 358.8999938964844,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
-      }
-    ],
-    "position": "",
-    "name": "Welcome...",
-    "title": ""
-  },
-  {
-    "type": "visual",
-    "service": "vespers",
-    "elements": [
-      {
-        "type": "text",
-        "text": "Special Song",
-        "x": 286.6000061035156,
-        "y": 201.26251220703125,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
-      },
-      {
-        "type": "text",
-        "text": "Kim & Siam",
-        "x": 365.6000061035156,
-        "y": 358.8999938964844,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
-      }
-    ],
-    "position": "",
-    "name": "Special Song...",
-    "title": ""
-  },
-  {
-    "type": "visual",
-    "service": "vespers",
-    "elements": [
-      {
-        "type": "text",
-        "text": "Message",
-        "x": 350.1000061035156,
-        "y": 161.45001220703125,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
-      },
-      {
-        "type": "text",
-        "text": "Pual Rothwel De Jesus",
-        "x": 255.5,
-        "y": 362.5,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "right"
-      },
-      {
-        "type": "text",
-        "text": "\"Spiritual First Aid: God's Remedy for a Broken Soul\"",
-        "x": 76.60000610351562,
-        "y": 266.1000061035156,
-        "fontSize": 36,
-        "color": "#ffffff",
-        "align": "center"
-      }
-    ],
-    "position": "",
-    "name": "Message...",
-    "title": ""
-  },
-  {
-    "type": "visual",
-    "service": "vespers",
-    "elements": [
-      {
-        "type": "text",
         "text": "Jeremiah 30:17",
-        "x": 253.10000610351562,
-        "y": 141.8625030517578,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
+        "x": 49.8339,
+        "y": 40.5007,
+        "fontSize": 4.791666666666667,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 33.4302,
+        "height": 14.1753
       },
       {
         "type": "text",
-        "text": "\"For I will restore health to you, and your wounds I will heal, declares the Lord.\"",
-        "x": 3.600006103515625,
-        "y": 278.6875,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
+        "text": "But I will restore you to health and heal your wounds, 'declares the Lord, 'because you are called an outcast, Zion for whom no one cares.'",
+        "x": 49.8339,
+        "y": 66.2739,
+        "fontSize": 3.5416666666666665,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 95.951,
+        "height": 36.5404
       }
     ],
     "position": "",
@@ -283,20 +313,24 @@
       {
         "type": "text",
         "text": "Closing Prayer",
-        "x": 338.5,
-        "y": 185,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
+        "x": 49.8339,
+        "y": 40.5007,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 49.3148,
+        "height": 20.6186
       },
       {
         "type": "text",
-        "text": "Pual Rothwel De Jesus",
-        "x": 255.5,
-        "y": 332,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
+        "text": "Donald Bapi Das",
+        "x": 49.8339,
+        "y": 62.5161,
+        "fontSize": 4.583333333333333,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 35.4028,
+        "height": 13.623
       }
     ],
     "position": "",

@@ -259,6 +259,19 @@
         overflow: hidden;
         cursor: crosshair;
       }
+      /* Light grid overlay for alignment */
+      .editor-canvas.grid-on::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+        background-size: 20px 20px;
+        pointer-events: none;
+        z-index: 2;
+      }
       
       .snap-guide {
         position: absolute;
@@ -318,11 +331,70 @@
         background: rgba(168, 224, 99, 0.1);
       }
 
+      /* Resize handle inside text element */
+      .text-element .resizer {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 2px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.6);
+        z-index: 20;
+        display: none; /* hidden by default, shown only for selected */
+      }
+      /* Show resizers only for the selected element */
+      .text-element.selected .resizer { display: block; }
+
+      /* When canvas is in single-select mode, hide decorations (border/background/resizers) for other elements
+         but keep their inner text visible. The wrapper (.text-element) will become visually transparent while
+         .text-content remains shown. This preserves readability while focusing edit UI on the selected element. */
+      .editor-canvas.single-select .text-element {
+        /* Keep position and text, but remove visual chrome */
+        background: transparent !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        /* keep text visible and selectable if needed */
+        color: inherit;
+        pointer-events: none; /* prevent interaction with non-selected wrappers */
+      }
+      /* Allow the inner text content to remain interactive/visible even when wrapper blocks pointer events */
+      .editor-canvas.single-select .text-element .text-content {
+        pointer-events: auto;
+        opacity: 1;
+        user-select: text;
+      }
+      /* Ensure selected element still shows chrome and handles */
+      .editor-canvas.single-select .text-element.selected {
+        pointer-events: auto;
+        border-color: #a8e063 !important;
+        background: rgba(168, 224, 99, 0.1) !important;
+      }
+      /* Hide resizers on non-selected elements explicitly */
+      .editor-canvas.single-select .text-element .resizer { display: none !important; }
+      .editor-canvas.single-select .text-element.selected .resizer { display: block !important; }
+      .text-element .resizer.handle-nw { left: -8px; top: -8px; cursor: nwse-resize; }
+      .text-element .resizer.handle-ne { right: -8px; top: -8px; cursor: nesw-resize; }
+      .text-element .resizer.handle-se { right: -8px; bottom: -8px; cursor: nwse-resize; }
+      .text-element .resizer.handle-sw { left: -8px; bottom: -8px; cursor: nesw-resize; }
+      .text-element .resizer.handle-n  { left: 50%; top: -8px; transform: translateX(-50%); cursor: ns-resize; }
+      .text-element .resizer.handle-s  { left: 50%; bottom: -8px; transform: translateX(-50%); cursor: ns-resize; }
+      .text-element .resizer.handle-e  { right: -8px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+      .text-element .resizer.handle-w  { left: -8px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+
       .editor-toolbar {
         display: flex;
         gap: 10px;
         margin-bottom: 15px;
         flex-wrap: wrap;
+      }
+
+      /* ensure inner text-content wraps and can be measured for auto-fit */
+      .text-element .text-content {
+        display: inline-block;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-width: 100%;
+        box-sizing: border-box;
       }
 
       .toolbar-group {
@@ -959,6 +1031,21 @@
         // Update slide dots and thumbnails
         updateSlideDots();
         
+        // If the visual editor is open, load the clicked slide into the editor
+        const editorModal = document.getElementById('visualEditorModal');
+        const isEditorOpen = editorModal && editorModal.style.display === 'block';
+        if (isEditorOpen) {
+          // Load the slide into the editor so user can edit the clicked slide
+          editingVisualSlideIndex = currentIndex;
+          editingVisualSlide = slideData;
+          // Clear current editor state and render new slide data
+          editorElements = [];
+          selectedElement = null;
+          clearCanvas();
+          // If slide is visual, load directly; otherwise set editingVisualSlide and call loader
+          loadExistingVisualSlide();
+        }
+
         // Check slide type
         if (typeof slideData === 'object' && slideData.type === 'visual') {
           // Send visual slide with elements
@@ -1170,13 +1257,15 @@
         const editorModal = document.getElementById('visualEditorModal');
         const isEditorOpen = editorModal && editorModal.style.display === 'block';
         
-        // If visual editor is open and user is editing text, allow normal spacebar behavior
+        // If visual editor is open and user is editing text (including inner .text-content), allow normal spacebar behavior
         if (isEditorOpen) {
           const activeElement = document.activeElement;
-          if (activeElement && activeElement.classList.contains('text-element')) {
-            // User is editing text in visual editor, allow spacebar
-            return;
-          }
+          try {
+            if (activeElement && activeElement.closest && activeElement.closest('.text-element')) {
+              // User is editing text in visual editor, allow spacebar
+              return;
+            }
+          } catch (err) {}
         }
         
         if (e.key === 'ArrowRight' || e.key === ' ') {
@@ -1286,7 +1375,12 @@
           const element = document.createElement('div');
           element.className = 'text-element';
           element.id = elemData.id;
-          element.textContent = elemData.text;
+          // inner editable content
+          const contentDiv = document.createElement('div');
+          contentDiv.className = 'text-content';
+          contentDiv.contentEditable = true;
+          contentDiv.innerText = elemData.text || '';
+          element.appendChild(contentDiv);
           // elemData.x/y are percent, fontSize is vw
           const canvas = document.getElementById('editorCanvas');
           element.style.left = (elemData.x !== undefined ? elemData.x : 50) + '%';
@@ -1295,15 +1389,29 @@
           element.style.fontSize = fontPx + 'px';
           element.style.color = elemData.color;
           element.style.textAlign = elemData.align;
-          element.contentEditable = true;
-          
+          // Apply stored width/height if present (percent values)
+          if (elemData.width !== undefined && elemData.width !== null) {
+            element.style.width = elemData.width + '%';
+          }
+          if (elemData.height !== undefined && elemData.height !== null) {
+            element.style.height = elemData.height + '%';
+          }
           // Add event listeners
           element.addEventListener('mousedown', startDrag);
           element.addEventListener('click', selectElement);
           element.addEventListener('dblclick', enterEditMode);
-          element.addEventListener('input', updateElementText);
-          element.addEventListener('blur', finishEditing);
-          
+          // contentDiv handles input/blur
+          contentDiv.addEventListener('input', updateElementText);
+          contentDiv.addEventListener('blur', finishEditing);
+
+          // add resizer handles
+          createResizers(element);
+          // auto-fit default for restored elements (unless explicitly disabled)
+          const elemDatum = editorElements.find(el => el.id === element.id);
+          if (elemDatum && elemDatum.autoFit !== false) {
+            // ensure box fits its content on restore
+            setTimeout(() => autoFitElement(element), 0);
+          }
           canvas.appendChild(element);
         });
         
@@ -1383,6 +1491,20 @@
           }
           fontInput.value = defaultSize;
         }
+        // Apply saved grid preference
+        const gridOn = localStorage.getItem('editor-grid') === 'true';
+        const canvas = document.getElementById('editorCanvas');
+        if (gridOn) canvas.classList.add('grid-on'); else canvas.classList.remove('grid-on');
+      }
+
+      function toggleEditorGrid() {
+        const canvas = document.getElementById('editorCanvas');
+        if (!canvas) return;
+        const isOn = canvas.classList.toggle('grid-on');
+        localStorage.setItem('editor-grid', isOn ? 'true' : 'false');
+        // update button appearance
+        const btn = document.getElementById('toggle-grid-btn');
+        if (btn) btn.style.backgroundColor = isOn ? '#2ecc71' : '';
       }
 
       // Close Visual Editor
@@ -1404,10 +1526,15 @@
         saveStateForUndo(); // Save state before adding element
         
         const canvas = document.getElementById('editorCanvas');
-        const element = document.createElement('div');
-        element.className = 'text-element';
-        element.id = 'element-' + (elementIdCounter++);
-        element.textContent = 'New Text';
+  const element = document.createElement('div');
+  element.className = 'text-element';
+  element.id = 'element-' + (elementIdCounter++);
+  // inner editable content so resizer isn't removed when editing
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'text-content';
+  contentDiv.contentEditable = true;
+  contentDiv.innerText = 'New Text';
+  element.appendChild(contentDiv);
         element.style.left = '50%';
         element.style.top = '50%';
         element.style.fontSize = '48px'; /* Initial px; will convert to vw on save */
@@ -1419,14 +1546,17 @@
         element.addEventListener('mousedown', startDrag);
         element.addEventListener('click', selectElement);
         element.addEventListener('dblclick', enterEditMode);
-        element.addEventListener('input', updateElementText);
-        element.addEventListener('blur', finishEditing);
+  // listen on contentDiv for edits
+  contentDiv.addEventListener('input', updateElementText);
+  contentDiv.addEventListener('blur', finishEditing);
         
-  canvas.appendChild(element);
+  // Add resizer handles
+  createResizers(element);
+
   canvas.appendChild(element);
   // Store as percent positions and vw fontSize
   const canvasW = canvas.clientWidth || 960;
-  editorElements.push({ id: element.id, x: 50, y: 50, fontSize: (48 / canvasW * 100), text: element.textContent, color: '#ffffff', align: 'center' });
+  editorElements.push({ id: element.id, x: 50, y: 50, fontSize: (48 / canvasW * 100), text: contentDiv.innerText, color: '#ffffff', align: 'center', width: undefined, height: undefined, autoFit: true });
         selectElement({ target: element });
         
         selectElement({ target: element });
@@ -1440,8 +1570,13 @@
         if (selectedElement) {
           selectedElement.classList.remove('selected');
         }
-        selectedElement = e.target.closest('.text-element');
+  // select the wrapper element even if event target is the inner content
+  selectedElement = e.target.closest('.text-element');
+        const canvas = document.getElementById('editorCanvas');
+        // Enter single-select mode: hide others
+        if (canvas) canvas.classList.add('single-select');
         if (selectedElement) {
+          // ensure previously selected hidden and this one visible
           selectedElement.classList.add('selected');
           
           // Update toolbar with element properties
@@ -1449,18 +1584,41 @@
           document.getElementById('textColor').value = rgbToHex(selectedElement.style.color);
         }
       }
+
+      // Clear single-selection and show all elements
+      function clearSelection() {
+        const canvas = document.getElementById('editorCanvas');
+        if (canvas) canvas.classList.remove('single-select');
+        if (selectedElement) {
+          selectedElement.classList.remove('selected');
+          selectedElement = null;
+        }
+      }
+
+      // Clicking the canvas (not an element) clears single-select mode
+      document.addEventListener('click', (e) => {
+        const canvas = document.getElementById('editorCanvas');
+        if (!canvas) return;
+        if (e.target === canvas) {
+          clearSelection();
+        }
+      });
       
       // Enter editing mode on double-click
       function enterEditMode(e) {
-        if (e.target.classList.contains('text-element')) {
-          e.target.classList.add('editing');
-          e.target.focus();
-          // Select all text for easy replacement
-          const range = document.createRange();
-          range.selectNodeContents(e.target);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
+        const wrapper = e.target.closest('.text-element');
+        if (wrapper) {
+          wrapper.classList.add('editing');
+          const content = wrapper.querySelector('.text-content');
+          if (content) {
+            content.focus();
+            // Select all text for easy replacement
+            const range = document.createRange();
+            range.selectNodeContents(content);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
         }
       }
       
@@ -1476,20 +1634,41 @@
       let dragStartY = 0;
       let dragStartLeft = 50;
       let dragStartTop = 50;
+    // pointer offset inside element when drag starts (px)
+    let dragPointerOffsetX = 0;
+    let dragPointerOffsetY = 0;
+    let dragElementWidthPx = 0;
+    let dragElementHeightPx = 0;
+  let isResizing = false;
+  let resizeStartX = 0;
+  let resizeStartY = 0;
+  let resizeStartWidth = 0;
+  let resizeStartHeight = 0;
+  let resizeTarget = null;
+  const gridSizePx = 20; // snap grid size in pixels
 
       function startDrag(e) {
         // only left button and non-editing
         if (e.button !== 0) return;
-        if (!e.target.classList.contains('text-element')) return;
-        if (e.target.classList.contains('editing')) return;
+        const wrapper = e.target.closest ? e.target.closest('.text-element') : null;
+        if (!wrapper) return;
+        if (wrapper.classList.contains('editing')) return;
 
         saveStateForUndo();
 
-        selectedElement = e.target;
-        selectElement(e);
+        selectedElement = wrapper;
+        // normalize selectElement call
+        selectElement({ target: wrapper });
 
-        dragStartX = e.clientX;
-        dragStartY = e.clientY;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+
+  // compute pointer offset within the element (relative to element's top-left)
+  const rect = wrapper.getBoundingClientRect();
+  dragPointerOffsetX = e.clientX - rect.left;
+  dragPointerOffsetY = e.clientY - rect.top;
+  dragElementWidthPx = rect.width;
+  dragElementHeightPx = rect.height;
 
         // parse percent left/top (fallback to 50)
         dragStartLeft = parseFloat(selectedElement.style.left) || 50;
@@ -1501,43 +1680,221 @@
         e.preventDefault();
       }
 
+      // Start resizing when resizer handle mousedown
+      function startResize(e) {
+        // e is the mousedown event on a resizer handle; expect dataset.dir like 'se','n','w' etc.
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        e.preventDefault();
+        const handle = e.target;
+        const dir = handle && handle.dataset ? handle.dataset.dir : null;
+        isResizing = true;
+        resizeTarget = e.target.closest('.text-element');
+        if (!resizeTarget) return;
+  // Disable autoFit for this element when user manually resizes
+  const elemDatum = editorElements.find(el => el.id === resizeTarget.id);
+  if (elemDatum) elemDatum.autoFit = false;
+        resizeTarget._resizeDir = dir || 'se';
+        // ensure element is selected during resize to avoid blinking
+        selectedElement = resizeTarget;
+        selectedElement.classList.add('selected');
+        saveStateForUndo();
+
+        const rect = resizeTarget.getBoundingClientRect();
+        resizeStartX = e.clientX;
+        resizeStartY = e.clientY;
+        resizeStartWidth = rect.width;
+        resizeStartHeight = rect.height;
+
+        // During drag use px sizes to avoid percent rounding flicker; convert on mouseup
+        document.addEventListener('mousemove', resizeElement);
+        document.addEventListener('mouseup', stopResize);
+      }
+
+      // Create 8 resize handles on the element and attach direction metadata
+      function createResizers(element) {
+        const dirs = ['nw','n','ne','e','se','s','sw','w'];
+        dirs.forEach(d => {
+          const handle = document.createElement('div');
+          handle.className = 'resizer handle-' + d;
+          handle.dataset.dir = d;
+          handle.addEventListener('mousedown', startResize);
+          element.appendChild(handle);
+        });
+      }
+
       function dragElement(e) {
         if (!selectedElement) return;
-        const rect = document.getElementById('editorCanvas').getBoundingClientRect();
-        const dx = e.clientX - dragStartX;
-        const dy = e.clientY - dragStartY;
-        let newLeft = dragStartLeft + (dx / rect.width * 100);
-        let newTop = dragStartTop + (dy / rect.height * 100);
+        const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
 
-        // clamp
-        newLeft = Math.max(0, Math.min(100, newLeft));
-        newTop = Math.max(0, Math.min(100, newTop));
+        // desired top-left (px) if pointer offset is applied
+        let desiredLeftPx = e.clientX - dragPointerOffsetX;
+        let desiredTopPx = e.clientY - dragPointerOffsetY;
 
-        // snap to center (percent)
+        // If grid is active, snap the pointer position to the grid and compute top-left so pointer stays anchored
+        const canvas = document.getElementById('editorCanvas');
+        const gridOn = canvas && canvas.classList && canvas.classList.contains('grid-on');
+        if (gridOn && typeof gridSizePx === 'number' && gridSizePx > 0) {
+          const snappedPointerX = Math.round(e.clientX / gridSizePx) * gridSizePx;
+          const snappedPointerY = Math.round(e.clientY / gridSizePx) * gridSizePx;
+          desiredLeftPx = snappedPointerX - dragPointerOffsetX;
+          desiredTopPx = snappedPointerY - dragPointerOffsetY;
+        }
+
+        // Keep element inside canvas bounds
+        desiredLeftPx = Math.max(canvasRect.left - (dragElementWidthPx/2), Math.min(desiredLeftPx, canvasRect.right - (dragElementWidthPx/2) - 1));
+        desiredTopPx = Math.max(canvasRect.top - (dragElementHeightPx/2), Math.min(desiredTopPx, canvasRect.bottom - (dragElementHeightPx/2) - 1));
+
+        // Convert top-left px to center percent values
+        const centerPxX = desiredLeftPx + (dragElementWidthPx / 2) - canvasRect.left;
+        const centerPxY = desiredTopPx + (dragElementHeightPx / 2) - canvasRect.top;
+        let newLeftPct = (centerPxX / canvasRect.width) * 100;
+        let newTopPct = (centerPxY / canvasRect.height) * 100;
+
+        // snap to center percent threshold
         const snapThreshold = 2; // percent
-        if (Math.abs(newLeft - 50) < snapThreshold) newLeft = 50;
-        if (Math.abs(newTop - 50) < snapThreshold) newTop = 50;
+        if (Math.abs(newLeftPct - 50) < snapThreshold) newLeftPct = 50;
+        if (Math.abs(newTopPct - 50) < snapThreshold) newTopPct = 50;
 
         const sgH = document.getElementById('snapGuideHorizontal');
         const sgV = document.getElementById('snapGuideVertical');
-        if (sgH) sgH.classList.toggle('visible', Math.abs(newTop - 50) < snapThreshold);
-        if (sgV) sgV.classList.toggle('visible', Math.abs(newLeft - 50) < snapThreshold);
+        if (sgH) sgH.classList.toggle('visible', Math.abs(newTopPct - 50) < snapThreshold);
+        if (sgV) sgV.classList.toggle('visible', Math.abs(newLeftPct - 50) < snapThreshold);
 
-        selectedElement.style.left = newLeft + '%';
-        selectedElement.style.top = newTop + '%';
+        selectedElement.style.left = Math.max(0, Math.min(100, newLeftPct)) + '%';
+        selectedElement.style.top = Math.max(0, Math.min(100, newTopPct)) + '%';
 
-        // Update model (store percent)
+        // Update model
         const elemData = editorElements.find(el => el.id === selectedElement.id);
         if (elemData) {
-          elemData.x = newLeft;
-          elemData.y = newTop;
+          elemData.x = parseFloat(selectedElement.style.left) || newLeftPct;
+          elemData.y = parseFloat(selectedElement.style.top) || newTopPct;
         }
+      }
+
+      // Resize handler (change width/height in percent relative to canvas)
+      function resizeElement(e) {
+        if (!isResizing || !resizeTarget) return;
+        e.preventDefault();
+        const canvas = document.getElementById('editorCanvas');
+        const canvasRect = canvas.getBoundingClientRect();
+
+        const dx = e.clientX - resizeStartX;
+        const dy = e.clientY - resizeStartY;
+
+        // Determine direction
+        const dir = (resizeTarget && resizeTarget._resizeDir) ? resizeTarget._resizeDir : 'se';
+
+        // Start from original px sizes
+        let newWidthPx = resizeStartWidth;
+        let newHeightPx = resizeStartHeight;
+        let leftPx = resizeTarget.getBoundingClientRect().left;
+        let topPx = resizeTarget.getBoundingClientRect().top;
+
+        // Adjust based on direction. For side handles, only change one dimension; corners change both.
+        if (dir.includes('e')) {
+          newWidthPx = Math.max(20, resizeStartWidth + dx);
+        }
+        if (dir.includes('s')) {
+          newHeightPx = Math.max(20, resizeStartHeight + dy);
+        }
+        if (dir.includes('w')) {
+          newWidthPx = Math.max(20, resizeStartWidth - dx);
+          // move left as width grows to the left
+          leftPx = leftPx + dx;
+        }
+        if (dir.includes('n')) {
+          newHeightPx = Math.max(20, resizeStartHeight - dy);
+          topPx = topPx + dy;
+        }
+
+        // Apply px sizes temporarily
+        resizeTarget.style.width = newWidthPx + 'px';
+        resizeTarget.style.height = newHeightPx + 'px';
+
+        // Update left/top if north or west affected (convert leftPx/topPx to percent relative to canvas)
+        const canvasRect2 = canvas.getBoundingClientRect();
+        if (dir.includes('w') || dir.includes('n')) {
+          const newLeftPct = ((leftPx - canvasRect2.left) / canvasRect2.width) * 100;
+          const newTopPct = ((topPx - canvasRect2.top) / canvasRect2.height) * 100;
+          if (dir.includes('w')) resizeTarget.style.left = Math.max(0, Math.min(100, newLeftPct)) + '%';
+          if (dir.includes('n')) resizeTarget.style.top = Math.max(0, Math.min(100, newTopPct)) + '%';
+        }
+
+        // Update model percent sizes for persistence
+  // Snap size to grid
+  newWidthPx = Math.round(newWidthPx / gridSizePx) * gridSizePx;
+  newHeightPx = Math.round(newHeightPx / gridSizePx) * gridSizePx;
+
+  const newWidthPct = (newWidthPx / canvasRect2.width) * 100;
+  const newHeightPct = (newHeightPx / canvasRect2.height) * 100;
+        const elemData = editorElements.find(el => el.id === resizeTarget.id);
+        if (elemData) {
+          elemData.width = Math.max(0.5, Math.min(100, newWidthPct));
+          elemData.height = Math.max(0.5, Math.min(100, newHeightPct));
+          if (dir.includes('w')) elemData.x = parseFloat(resizeTarget.style.left) || elemData.x;
+          if (dir.includes('n')) elemData.y = parseFloat(resizeTarget.style.top) || elemData.y;
+        }
+      }
+
+      function stopResize() {
+        if (!isResizing) return;
+        document.removeEventListener('mousemove', resizeElement);
+        document.removeEventListener('mouseup', stopResize);
+
+        // Convert px style to percent style for persistence/display consistency
+        const canvas = document.getElementById('editorCanvas');
+        const canvasRect = canvas.getBoundingClientRect();
+        const rect = resizeTarget.getBoundingClientRect();
+        const finalWidthPct = (rect.width / canvasRect.width) * 100;
+        const finalHeightPct = (rect.height / canvasRect.height) * 100;
+        // clamp
+        const wPct = Math.max(0.5, Math.min(100, finalWidthPct));
+        const hPct = Math.max(0.5, Math.min(100, finalHeightPct));
+        resizeTarget.style.width = wPct + '%';
+        resizeTarget.style.height = hPct + '%';
+
+        // Update model (already partially updated during drag)
+        const elemData = editorElements.find(el => el.id === resizeTarget.id);
+        if (elemData) {
+          elemData.width = wPct;
+          elemData.height = hPct;
+        }
+
+        isResizing = false;
+        // keep element selected, clear resizeTarget
+        resizeTarget = null;
       }
 
       function stopDrag() {
         document.removeEventListener('mousemove', dragElement);
         document.removeEventListener('mouseup', stopDrag);
-        selectedElement = null;
+        // If we are resizing, keep the element selected to avoid flicker
+        if (!isResizing) {
+          // perform final snap-to-grid on mouseup to keep element aligned, but only if grid is enabled
+          const canvas = document.getElementById('editorCanvas');
+          const canvasRect = canvas.getBoundingClientRect();
+          if (selectedElement) {
+            const rect = selectedElement.getBoundingClientRect();
+            // center px within canvas
+            const centerPxX = rect.left - canvasRect.left + rect.width / 2;
+            const centerPxY = rect.top - canvasRect.top + rect.height / 2;
+            const snappedCenterX = Math.round(centerPxX / gridSizePx) * gridSizePx;
+            const snappedCenterY = Math.round(centerPxY / gridSizePx) * gridSizePx;
+            const snappedLeftPct = ((snappedCenterX) / canvasRect.width) * 100;
+            const snappedTopPct = ((snappedCenterY) / canvasRect.height) * 100;
+            // Apply snapped percent positions
+            selectedElement.style.left = Math.max(0, Math.min(100, snappedLeftPct)) + '%';
+            selectedElement.style.top = Math.max(0, Math.min(100, snappedTopPct)) + '%';
+            // Update model
+            const elemData = editorElements.find(el => el.id === selectedElement.id);
+            if (elemData) {
+              elemData.x = parseFloat(selectedElement.style.left) || elemData.x;
+              elemData.y = parseFloat(selectedElement.style.top) || elemData.y;
+            }
+          }
+          selectedElement = null;
+        }
 
         const sgH = document.getElementById('snapGuideHorizontal');
         const sgV = document.getElementById('snapGuideVertical');
@@ -1547,22 +1904,31 @@
 
       // Update element text when content changes
       function updateElementText(e) {
-        const element = e.target;
-        const elemData = editorElements.find(el => el.id === element.id);
+        // e.target is the inner .text-content
+        const content = e.target;
+        const wrapper = content.closest('.text-element');
+        if (!wrapper) return;
+        const elemData = editorElements.find(el => el.id === wrapper.id);
         if (elemData) {
-          elemData.text = element.textContent;
+          elemData.text = content.innerText;
+          // If this element is in autoFit mode, adjust its box to fit new content
+          if (elemData.autoFit !== false) {
+            autoFitElement(wrapper);
+          }
         }
       }
 
       // Finish editing when element loses focus
       function finishEditing(e) {
-        const element = e.target;
-        const elemData = editorElements.find(el => el.id === element.id);
+        const content = e.target;
+        const wrapper = content.closest('.text-element');
+        if (!wrapper) return;
+        const elemData = editorElements.find(el => el.id === wrapper.id);
         if (elemData) {
-          elemData.text = element.textContent;
+          elemData.text = content.innerText;
         }
         // Exit editing mode
-        exitEditMode(element);
+        exitEditMode(wrapper);
       }
 
       // Update Selected Element
@@ -1603,6 +1969,61 @@
           }
         }
       }
+
+        // Auto-fit an element's wrapper to match its inner text-content size (PowerPoint-like behavior)
+        function autoFitElement(wrapper) {
+          if (!wrapper) return;
+          const content = wrapper.querySelector('.text-content');
+          if (!content) return;
+
+          const canvas = document.getElementById('editorCanvas');
+          if (!canvas) return;
+          const canvasRect = canvas.getBoundingClientRect();
+
+          // Temporarily measure content by cloning into an offscreen element to get intrinsic size
+          const measurer = document.createElement('div');
+          measurer.style.position = 'absolute';
+          measurer.style.visibility = 'hidden';
+          measurer.style.whiteSpace = 'pre-wrap';
+          measurer.style.font = window.getComputedStyle(content).font;
+          measurer.style.lineHeight = window.getComputedStyle(content).lineHeight;
+          measurer.style.width = 'auto';
+          measurer.style.maxWidth = (canvasRect.width - 20) + 'px'; // keep some padding
+          measurer.textContent = content.innerText || content.textContent || '';
+          document.body.appendChild(measurer);
+
+          const measuredW = Math.min(measurer.offsetWidth + 20, canvasRect.width); // padding
+          const measuredH = Math.min(measurer.offsetHeight + 16, canvasRect.height);
+          document.body.removeChild(measurer);
+
+          // Preserve visual center: compute current center in px
+          const beforeRect = wrapper.getBoundingClientRect();
+          const centerPxX = beforeRect.left - canvasRect.left + beforeRect.width / 2;
+          const centerPxY = beforeRect.top - canvasRect.top + beforeRect.height / 2;
+
+          // Apply new width/height in px temporarily then convert to percent
+          wrapper.style.width = measuredW + 'px';
+          wrapper.style.height = measuredH + 'px';
+
+          // compute new center to keep element centered where it was
+          const afterRect = wrapper.getBoundingClientRect();
+          const desiredCenterPctX = (centerPxX / canvasRect.width) * 100;
+          const desiredCenterPctY = (centerPxY / canvasRect.height) * 100;
+          wrapper.style.left = desiredCenterPctX + '%';
+          wrapper.style.top = desiredCenterPctY + '%';
+
+          // Convert width/height px to percent and update model
+          const wPct = (measuredW / canvasRect.width) * 100;
+          const hPct = (measuredH / canvasRect.height) * 100;
+          wrapper.style.width = Math.max(1, Math.min(100, wPct)) + '%';
+          wrapper.style.height = Math.max(1, Math.min(100, hPct)) + '%';
+
+          const elemData = editorElements.find(el => el.id === wrapper.id);
+          if (elemData) {
+            elemData.width = Math.max(1, Math.min(100, wPct));
+            elemData.height = Math.max(1, Math.min(100, hPct));
+          }
+        }
 
       // Align Text (inside the text box)
       function alignText(alignment) {
@@ -1730,15 +2151,17 @@
 
             return {
               type: el.type || 'text',
-              text: dom ? dom.textContent : el.text,
+              // Prefer inner .text-content text if present
+              text: dom ? ( (dom.querySelector && dom.querySelector('.text-content')) ? dom.querySelector('.text-content').innerText : dom.textContent ) : el.text,
               x: leftPct,
               y: topPct,
               // convert px font to vw based on canvas width
               fontSize: (fontPx / canvasW * 100),
               color: dom ? (dom.style.color || el.color) : el.color,
               align: dom ? (dom.style.textAlign || el.align) : el.align,
-              width: el.width,
-              height: el.height
+              // width/height stored as percent of canvas (if available)
+              width: dom ? (parseFloat(dom.style.width) || el.width) : el.width,
+              height: dom ? (parseFloat(dom.style.height) || el.height) : el.height
             };
           })
         };
@@ -1798,10 +2221,15 @@
         if (editingVisualSlide.type === 'visual' && editingVisualSlide.elements) {
           // Load existing visual slide elements
           editingVisualSlide.elements.forEach((elementData, index) => {
-            const element = document.createElement('div');
-            element.className = 'text-element';
-            element.id = 'element-' + (elementIdCounter++);
-            element.textContent = elementData.text;
+              const element = document.createElement('div');
+              element.className = 'text-element';
+              element.id = 'element-' + (elementIdCounter++);
+              // inner editable content
+              const contentDiv = document.createElement('div');
+              contentDiv.className = 'text-content';
+              contentDiv.contentEditable = true;
+              contentDiv.innerText = elementData.text || '';
+              element.appendChild(contentDiv);
             // Positions are stored as percent (x/y) and fontSize as vw
             element.style.left = (elementData.x !== undefined ? elementData.x : 50) + '%';
             element.style.top = (elementData.y !== undefined ? elementData.y : 50) + '%';
@@ -1810,15 +2238,21 @@
             element.style.fontSize = fontPx + 'px';
             element.style.color = elementData.color;
             element.style.textAlign = elementData.align;
-            element.contentEditable = true; // Make directly editable
-            
             // Add event listeners
             element.addEventListener('mousedown', startDrag);
             element.addEventListener('click', selectElement);
             element.addEventListener('dblclick', enterEditMode);
-            element.addEventListener('input', updateElementText);
-            element.addEventListener('blur', finishEditing);
-            
+            contentDiv.addEventListener('input', updateElementText);
+            contentDiv.addEventListener('blur', finishEditing);
+            // Apply stored width/height if present (percent values)
+            if (elementData.width !== undefined && elementData.width !== null) {
+              element.style.width = elementData.width + '%';
+            }
+            if (elementData.height !== undefined && elementData.height !== null) {
+              element.style.height = elementData.height + '%';
+            }
+            // Add resizer handles
+            createResizers(element);
             canvas.appendChild(element);
             
             // Add to editor elements array (store percent coords and vw fontSize)
@@ -1829,8 +2263,13 @@
               y: elementData.y,
               fontSize: elementData.fontSize, // vw units
               color: elementData.color,
-              align: elementData.align
+              align: elementData.align,
+              width: elementData.width,
+              height: elementData.height,
+              autoFit: elementData.autoFit !== false
             });
+            // Auto-fit newly created element if enabled
+            if (elementData.autoFit !== false) setTimeout(() => autoFitElement(element), 0);
           });
           console.log('Loaded', editorElements.length, 'visual elements');
           // Set toolbar font size to first element's font size if present
@@ -1926,7 +2365,11 @@
             const element = document.createElement('div');
             element.className = 'text-element';
             element.id = 'element-' + (elementIdCounter++);
-            element.textContent = elementData.text;
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'text-content';
+            contentDiv.contentEditable = true;
+            contentDiv.innerText = elementData.text || '';
+            element.appendChild(contentDiv);
             // elementData.x/y are percent, fontSize is vw
             element.style.left = (elementData.x !== undefined ? elementData.x : 50) + '%';
             element.style.top = (elementData.y !== undefined ? elementData.y : 50) + '%';
@@ -1935,15 +2378,13 @@
             element.style.fontSize = fontPx + 'px';
             element.style.color = elementData.color;
             element.style.textAlign = elementData.align;
-            element.contentEditable = true; // Make directly editable
-            
             // Add event listeners
             element.addEventListener('mousedown', startDrag);
             element.addEventListener('click', selectElement);
             element.addEventListener('dblclick', enterEditMode);
-            element.addEventListener('input', updateElementText);
-            element.addEventListener('blur', finishEditing);
-            
+            contentDiv.addEventListener('input', updateElementText);
+            contentDiv.addEventListener('blur', finishEditing);
+            createResizers(element);
             canvas.appendChild(element);
             
             // Add to editor elements array (store percent and vw)
@@ -1954,7 +2395,9 @@
               y: elementData.y,
               fontSize: elementData.fontSize,
               color: elementData.color,
-              align: elementData.align
+              align: elementData.align,
+              width: elementData.width,
+              height: elementData.height
             });
           });
           // Set toolbar font size to first converted element's font size
@@ -1991,11 +2434,17 @@
         if (e.key === 'Escape') {
           if (editorModal && editorModal.style.display === 'block') {
             const active = document.activeElement;
-            if (active && active.classList && active.classList.contains('text-element') && active.classList.contains('editing')) {
+            // Consider edits when focus is inside .text-content or wrapper has editing class
+            const editingWrapper = (active && active.closest) ? active.closest('.text-element') : null;
+            if (editingWrapper && editingWrapper.classList && editingWrapper.classList.contains('editing')) {
               // Exit editing mode for the active text element
-              active.classList.remove('editing');
-              // trigger blur to persist changes
-              try { active.blur(); } catch (err) {}
+              editingWrapper.classList.remove('editing');
+              // trigger blur to persist changes (blur inner content if focused)
+              try {
+                if (active && active.blur) active.blur();
+                const inner = editingWrapper.querySelector('.text-content');
+                if (inner && inner.blur) inner.blur();
+              } catch (err) {}
               return;
             }
             e.preventDefault();
@@ -2021,7 +2470,8 @@
           if ((e.key === 'Delete' || e.key === 'Backspace')) {
             // If caret is inside an editable element, let browser handle Backspace/Delete
             const active = document.activeElement;
-            if (active && active.classList && active.classList.contains('text-element')) {
+            // if caret is inside the inner editable content, allow native deletion
+            if (active && ((active.classList && active.classList.contains('text-content')) || (active.closest && active.closest('.text-element')) )) {
               return; // allow native text deletion
             }
             e.preventDefault();
@@ -2045,6 +2495,9 @@
         <div class="editor-toolbar">
           <div class="toolbar-group">
             <button class="toolbar-btn" onclick="addTextElement()">➕ Add Text</button>
+          </div>
+          <div class="toolbar-group">
+            <button id="toggle-grid-btn" class="toolbar-btn" onclick="toggleEditorGrid()" title="Toggle grid">🔳 Grid</button>
           </div>
           
           <div class="toolbar-group">
