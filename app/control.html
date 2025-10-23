@@ -852,49 +852,89 @@
               const scaleY = thumbH / srcH;
               if (slideData.elements && slideData.elements.length > 0) {
                 slideData.elements.forEach(el => {
+                  // Helper: convert stored editor values (percent/vw or px) to thumbnail pixels
+                  const mapX = (val) => {
+                    if (val === undefined || val === null) return 10; // default
+                    // If value looks like percent (0-100), treat as percent of source canvas
+                    if (val <= 100) return (val / 100) * thumbW;
+                    // Otherwise assume pixels relative to source width
+                    return (val / srcW) * thumbW;
+                  };
+                  const mapY = (val) => {
+                    if (val === undefined || val === null) return 10;
+                    if (val <= 100) return (val / 100) * thumbH;
+                    return (val / srcH) * thumbH;
+                  };
+                  const mapW = (val) => {
+                    if (val === undefined || val === null) return Math.min(thumbW * 0.2, thumbW - 10);
+                    if (val <= 100) return (val / 100) * thumbW;
+                    return (val / srcW) * thumbW;
+                  };
+                  const mapH = (val) => {
+                    if (val === undefined || val === null) return Math.min(thumbH * 0.15, thumbH - 10);
+                    if (val <= 100) return (val / 100) * thumbH;
+                    return (val / srcH) * thumbH;
+                  };
+
                   if (el.type === 'rect') {
                     drawn = true;
                     ctx.fillStyle = el.color || '#4caf50';
-                    const x = Math.max(0, Math.min(thumbW-10, (el.x || 10) * scaleX));
-                    const y = Math.max(0, Math.min(thumbH-10, (el.y || 10) * scaleY));
-                    const w = Math.max(10, Math.min(thumbW, (el.width || 200) * scaleX));
-                    const h = Math.max(10, Math.min(thumbH, (el.height || 100) * scaleY));
-                    ctx.fillRect(x, y, w, h);
+                    const x = Math.max(0, Math.min(thumbW - 10, mapX(el.x)));
+                    const y = Math.max(0, Math.min(thumbH - 10, mapY(el.y)));
+                    const w = Math.max(6, Math.min(thumbW, mapW(el.width)));
+                    const h = Math.max(6, Math.min(thumbH, mapH(el.height)));
+                    // If coords were percent representing center positions, convert from center to top-left
+                    // Many editor elements are stored as center positions; try center->top-left correction when reasonable
+                    const assumeCenter = (el.x !== undefined && el.x <= 100 && el.y !== undefined && el.y <= 100);
+                    if (assumeCenter) {
+                      ctx.fillRect(x - w / 2, y - h / 2, w, h);
+                    } else {
+                      ctx.fillRect(x, y, w, h);
+                    }
                   } else if (el.type === 'text' && el.text) {
                     drawn = true;
-                    // Font size scaled to thumbnail
-                    const fontSize = Math.max(12, Math.floor((el.fontSize || 48) * Math.min(scaleX, scaleY)));
-                    ctx.font = `bold ${fontSize}px Arial`;
+                    // el.fontSize is stored as vw (percent of canvas width). Map to thumbnail pixels.
+                    let fontSizePx = 16;
+                    if (el.fontSize !== undefined && el.fontSize !== null) {
+                      if (el.fontSize <= 100) {
+                        fontSizePx = Math.max(10, Math.floor((el.fontSize / 100) * thumbW));
+                      } else {
+                        // If stored as px, scale down from source
+                        fontSizePx = Math.max(10, Math.floor((el.fontSize / srcW) * thumbW));
+                      }
+                    }
+                    ctx.font = `bold ${fontSizePx}px Arial`;
                     ctx.fillStyle = el.color || '#fff';
                     ctx.textBaseline = 'top';
-                    // Estimate element box width if not provided
-                    const estElemWidth = el.width || Math.min(srcW - (el.x || 0), (el.text.length * (el.fontSize || 48) * 0.6));
-                    const scaledElemWidth = Math.max(20, estElemWidth * scaleX);
-                    // Compute x based on alignment
-                    let drawX = (el.x || 10) * scaleX;
+
+                    // Determine element box width in thumbnail
+                    const estElemWidth = (el.width !== undefined && el.width !== null) ? mapW(el.width) : Math.min(thumbW - 8, (el.text.length * fontSizePx * 0.6));
+                    const scaledElemWidth = Math.max(20, estElemWidth);
+
+                    // Compute drawX/drawY. Stored el.x/el.y are center percent in editor; map accordingly
+                    let drawX = mapX(el.x);
+                    let drawY = mapY(el.y);
+                    // If values appear to be percent (<=100), they represent center positions — shift to top-left anchor for drawing
+                    const centerCoords = (el.x !== undefined && el.x <= 100 && el.y !== undefined && el.y <= 100);
+                    if (centerCoords) {
+                      drawX = drawX - scaledElemWidth / 2;
+                      // small vertical offset to keep text readable
+                      drawY = drawY - fontSizePx / 2;
+                    }
+
+                    // Alignment handling
                     let align = (el.align || 'left').toLowerCase();
                     if (align === 'center') {
                       ctx.textAlign = 'center';
-                      drawX = drawX + scaledElemWidth / 2;
+                      ctx.fillText(el.text, drawX + scaledElemWidth / 2, Math.max(2, Math.min(thumbH - 6, drawY)));
                     } else if (align === 'right') {
                       ctx.textAlign = 'right';
-                      drawX = drawX + scaledElemWidth - 4;
+                      ctx.fillText(el.text, drawX + scaledElemWidth - 4, Math.max(2, Math.min(thumbH - 6, drawY)));
                     } else {
                       ctx.textAlign = 'left';
-                      drawX = drawX + 4;
+                      ctx.fillText(el.text, Math.max(2, drawX + 4), Math.max(2, Math.min(thumbH - 6, drawY)));
                     }
-                    const drawY = Math.max(4, Math.min(thumbH - 20, (el.y || 10) * scaleY));
-                    // Truncate text to avoid overflow
-                    let txt = el.text;
-                    // Measure and trim to fit scaledElemWidth
-                    if (ctx.measureText(txt).width > scaledElemWidth) {
-                      while (txt.length > 0 && ctx.measureText(txt + '...').width > scaledElemWidth) {
-                        txt = txt.slice(0, -1);
-                      }
-                      txt = txt + '...';
-                    }
-                    ctx.fillText(txt, drawX, drawY);
-                    // reset textAlign to default for other elements
+                    // reset textAlign
                     ctx.textAlign = 'start';
                   }
                 });
@@ -1461,6 +1501,30 @@
         const gridOn = localStorage.getItem('editor-grid') === 'true';
         const canvas = document.getElementById('editorCanvas');
         if (gridOn) canvas.classList.add('grid-on'); else canvas.classList.remove('grid-on');
+
+        // If opening editor for a service, prefer showing the service background in the editor canvas
+        try {
+          if (currentEditingService) {
+            const serviceSelect = document.getElementById('service-background-select');
+            const filename = serviceSelect ? serviceSelect.value : '';
+            if (filename) {
+              ipcRenderer.invoke('get-background-path', filename).then(abs => {
+                if (abs) {
+                  canvas.style.backgroundImage = `url("file:///${abs.replace(/\\/g, '/')}")`;
+                  canvas.style.backgroundSize = 'cover';
+                  canvas.style.backgroundPosition = 'center';
+                  canvas.style.backgroundColor = '';
+                }
+              }).catch(err => console.error('Failed to load service background for editor:', err));
+            } else {
+              // Clear to default black if no service bg selected
+              canvas.style.backgroundImage = '';
+              canvas.style.backgroundColor = '#000';
+            }
+          }
+        } catch (err) {
+          console.error('Error applying service background in openVisualEditor:', err);
+        }
       }
 
       function toggleEditorGrid() {

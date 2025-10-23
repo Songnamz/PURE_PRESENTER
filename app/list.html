@@ -634,7 +634,7 @@
       // Listen for visual slide saves from control window
       ipcRenderer.on('save-visual-slide', (_, slideData) => {
         console.log('Received visual slide to save:', slideData);
-        
+
         // Convert visual slide to service slide format
         const slide = {
           type: 'visual',
@@ -645,7 +645,9 @@
           name: slideData.elements.length > 0 ? slideData.elements[0].text.substring(0, 30) + '...' : 'New Visual Slide',
           title: ''
         };
-        
+
+        let affectedService = slide.service || currentChurchService || 'thai-church';
+
         if (slideData.editingIndex >= 0) {
           // Update existing slide
           console.log('Updating visual slide at index:', slideData.editingIndex);
@@ -655,9 +657,38 @@
           console.log('Adding new visual slide');
           serviceSlides.push(slide);
         }
-        
+
         saveServiceSlides();
         displayAllServiceSlides();
+
+        // If the service folder is currently expanded, re-send the song-loaded payload so Control thumbnails refresh
+        try {
+          const contentEl = document.getElementById(`${affectedService}-content`);
+          if (contentEl && !contentEl.classList.contains('collapsed')) {
+            const slidesForService = serviceSlides
+              .filter(s => s.service === affectedService)
+              .map(s => {
+                if (s.type === 'visual' && s.elements) return { type: 'visual', elements: s.elements };
+                if (s.type === 'title') {
+                  let slideText = `[TITLE]\n${s.titleText || ''}`;
+                  if (s.titleSubtitle) slideText += `\n\n${s.titleSubtitle}`;
+                  return slideText;
+                }
+                if (s.type === 'bible') {
+                  return `[BIBLE]\n${s.verseText || ''}\n\n${s.reference || ''}`;
+                }
+                let slideText = s.position || '';
+                if (s.title) slideText += `\n\n${s.title}`;
+                slideText += `\n\n${s.name || ''}`;
+                return `[SERVICE]\n${slideText}`;
+              });
+
+            const displayName = `Service: ${affectedService}`;
+            ipcRenderer.send('song-loaded', { name: displayName, slides: slidesForService });
+          }
+        } catch (err) {
+          console.error('Error re-sending song-loaded after save-visual-slide:', err);
+        }
       });
 
       // Load service slides from file
