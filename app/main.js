@@ -9,7 +9,7 @@ let projectorWindow, controlWindow, listWindow, activationWindow;
 let windowTitleSuffix = '- BY SONGNAM SARAPHAI'; // Global title suffix for all windows
 const SONG_DIR = path.join(__dirname, '../Hymns/Thai-English');
 const BACKGROUNDS_DIR = path.join(__dirname, '../backgrounds');
-const ICON_PATH = path.join(__dirname, '../assets/AIUCHURCH.ico');
+const ICON_PATH = path.join(__dirname, '../assets/PURE PRESENTER.ico');
 const SERVICE_SLIDES_FILE = path.join(__dirname, '../service-slides.json');
 const PRESENTATIONS_DIR = path.join(__dirname, '../Presentations');
 const AUDIO_DIR = path.join(__dirname, '../Audio');
