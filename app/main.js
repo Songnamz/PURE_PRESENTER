@@ -133,7 +133,7 @@ function createWindows() {
     height: 1080,
     x: 0,
     y: 0,
-    title: 'CHURCH PROGRAM' + windowTitleSuffix,
+    title: 'PROJECT LIST' + windowTitleSuffix,
     icon: fs.existsSync(ICON_PATH) ? ICON_PATH : undefined,
     webPreferences: { nodeIntegration: true, contextIsolation: false }
   });
@@ -1608,66 +1608,71 @@ Phone: 061-580-2547`,
             dialog.showMessageBox({
               type: 'info',
               title: 'PURE PRESENTER - Documentation',
-              message: 'How to Use AIU CHURCH PRESENTER',
-              detail: `FEATURES:
+              message: 'How to Use PURE PRESENTER (PROJECT LIST, CONTROL & DISPLAY2)',
+              detail: `OVERVIEW:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📂 HYMNAL FOLDERS
-• Service - Custom worship service slides
-• Thai - Thai language hymns only
-• Thai-English - Bilingual hymns (Thai & English)
-• English - English language hymns only
-• Presentations - Imported PowerPoint slides
+PURE PRESENTER is a multi-window presentation tool specially tailored for worship services. The three main windows are:
+• Project List (left) — pick hymns, presentations, and service slides
+• Control & Preview (center) — preview slides, open the Visual Editor, and control navigation
+• Display2 (projector) — full-screen output for the second monitor or projector
 
-🎵 DISPLAYING HYMNS
-1. Click any hymn from the folder list
-2. Use Control Window to navigate slides
-3. Slides appear on Display2 (projector)
-4. Search hymns using search boxes
+KEY FEATURES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-✏️ SERVICE SLIDES
-• Click "➕ Add Slide" to create custom slides
-• Enter position/role, title (optional), and name
-• Edit slides with ✏️ button
-• Delete slides with 🗑️ button
-• Drag slides to reorder them
+1) HYMN LIBRARIES
+• Built-in folders: Service, Thai, Thai-English, English
+• Click any hymn to load its verses as slides
+• Search boxes help locate hymns quickly
 
-📊 POWERPOINT PRESENTATIONS
-• Click "📥 Import PowerPoint" button
-• Select any .pptx file
-• Slides converted to images automatically
-• Click presentation name to display
-• Delete with 🗑️ button
+2) SERVICE SLIDES (CUSTOM VISUAL SLIDES)
+• Create, edit, reorder, and delete service slides
+• Visual Editor supports:
+  - Text elements with an inner editable area (WYSIWYG)
+  - 8 resizer handles (corners + sides) for manual resizing
+  - Pixel-accurate dragging while storing sizes/positions as percentages for portability
+  - Grid overlay with snap-to-grid (grid step adjustable in code; default 20px)
+  - Pointer-aware live snapping so the cursor stays anchored while snapping
+  - Auto-fit text boxes (like PowerPoint) which automatically size to content; manual resize disables auto-fit
+  - Undo / Redo with state restore that rebuilds resizer handles and maintains editor state
 
-🖥️ CONTROL WINDOW
-• Shows all slides as preview thumbnails
-• Click any slide to display on projector
-• Navigate with Previous/Next buttons
-• Shows current slide number
+3) PROJECTOR (DISPLAY2) BEHAVIOR
+• Automatically opens on first slide/song display (uses the second monitor if available)
+• Respects saved width/height and font sizes so text wrapping on Display2 matches the editor
+• Supports image slides (e.g., imported PowerPoint slides exported as PNG)
 
-📺 DISPLAY2 (PROJECTOR)
-• Full-screen presentation window
-• Automatically displays on second monitor
-• Shows hymn lyrics with background
-• Shows PowerPoint slides fullscreen
-• Service slides have transparent background
+4) POWERPOINT IMPORT
+• Import .pptx files; slides are exported as images and stored under Presentations
+• Imported presentations appear in the Presentations list and can be displayed or deleted
 
-🔄 NAVIGATION
-• ⬅️ Previous Slide
-• ➡️ Next Slide
-• Click thumbnail to jump to any slide
+5) MEDIA MANAGEMENT
+• Import and manage Audio and Video files (copy into the app's Audio/Video folders)
+• Import image files for backgrounds and slide content
 
-⚙️ WINDOWS
-• Project List - Main song selection window
-• Control - Slide navigation and preview
-• Display2 - Full-screen projector output
+6) LICENSE & SUBSCRIPTION
+• License activation / deactivation via the built-in activation window
+• Subscription details (customer name, key, status, expiry) are shown under Subscription → View License Information
 
-📝 TIPS
-• Folders collapsed by default - click to expand
-• Use search to quickly find songs
-• Service slides automatically formatted
-• PowerPoint import supports all .pptx files
-• Drag & drop to reorder service slides`,
+7) USABILITY & NAVIGATION
+• Click thumbnails in Control to jump to any slide
+• Previous/Next buttons for sequential navigation
+• Folders can be expanded/collapsed; drag to reorder service slides
+
+TIPS & NOTES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• The Visual Editor stores positions/sizes in relative percentages (center-anchored) so slides scale correctly across different displays.
+• Font sizes are saved in viewport units (vw) for consistent projector rendering.
+• If projector rendering appears different, check selected background and font settings in the Control window.
+• To reproduce exact editor wrapping on Display2, avoid changing the app window sizes while editing.
+
+SUPPORT & CONTACT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+For license support or feature requests, contact:
+Name: Songnam Saraphai
+Email: songnam@apiu.edu
+Phone: 061-580-2547
+
+This documentation summarizes the built-in features as of the current release. For further assistance, open the Visual Editor and test auto-fit, grid, and projector rendering with your presentation content.`,
               buttons: ['OK']
             });
           }
