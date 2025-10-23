@@ -195,6 +195,21 @@ ipcMain.handle('get-english-songs', () => {
   }
 });
 
+// Send list of Non-Hymnal txt files (custom folder)
+// Note: folder on disk is 'Non_Hymnal' (underscore). Match the actual folder name.
+const NON_HYMNAL_DIR = path.join(__dirname, '..', 'Non_Hymnal');
+ipcMain.handle('get-non-hymnal-songs', () => {
+  try {
+    if (fs.existsSync(NON_HYMNAL_DIR)) {
+      return fs.readdirSync(NON_HYMNAL_DIR).filter(f => f.endsWith('.txt') && f !== 'desktop.ini');
+    }
+    return [];
+  } catch (err) {
+    console.error('Error reading Non-Hymnal songs:', err);
+    return [];
+  }
+});
+
 // Get list of presentations
 ipcMain.handle('get-presentations', () => {
   try {
@@ -800,6 +815,36 @@ ipcMain.handle('load-english-song', async (event, filename) => {
     }
   } catch (err) {
     console.error('Failed to read English song file:', err);
+    slides.push(`❌ Error reading file:\n\n${err.message}`);
+  }
+
+  return slides;
+});
+
+// Load Non-Hymnal txt song files
+ipcMain.handle('load-non-hymnal-song', async (event, filename) => {
+  // Create projector window on first song load if it doesn't exist
+  if (!projectorWindow) {
+    createProjectorWindow();
+  }
+
+  const filepath = path.join(NON_HYMNAL_DIR, filename);
+  const slides = [];
+
+  try {
+    console.log(`Reading Non-Hymnal file: ${filepath}`);
+    const content = fs.readFileSync(filepath, 'utf8');
+    const verses = content.split(/\n\s*\n/).map(v => v.trim()).filter(v => v);
+    verses.forEach((verse, index) => {
+      slides.push(verse);
+      console.log(`Non-Hymnal Slide ${index + 1}: ${verse.substring(0, 50)}...`);
+    });
+
+    if (slides.length === 0) {
+      slides.push('⚠️ No content found in this file.');
+    }
+  } catch (err) {
+    console.error('Failed to read Non-Hymnal file:', err);
     slides.push(`❌ Error reading file:\n\n${err.message}`);
   }
 

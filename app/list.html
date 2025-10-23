@@ -552,6 +552,18 @@
       </div>
     </div>
 
+      <!-- Non-Hymnal Folder -->
+      <div class="folder">
+        <div class="folder-header" onclick="toggleFolder('non-hymnal')">
+          <span class="folder-icon" id="non-hymnal-icon">📁</span>
+          <span>Non-Hymnal</span>
+        </div>
+        <div class="folder-content collapsed" id="non-hymnal-content">
+          <input type="text" id="non-hymnal-search" placeholder="Search Non-Hymnal files..." />
+          <div id="non-hymnal-songs"></div>
+        </div>
+      </div>
+
     <!-- Presentations Folder -->
     <div class="folder">
       <div class="folder-header" onclick="toggleFolder('presentations')">
@@ -1692,6 +1704,55 @@
         displayEnglishSongs(filtered);
       });
 
+      // Non-Hymnal Songs functionality
+      let allNonHymnalSongs = [];
+
+      async function loadNonHymnalSongs() {
+        try {
+          allNonHymnalSongs = await ipcRenderer.invoke('get-non-hymnal-songs');
+        } catch (err) {
+          console.error('Error loading Non-Hymnal songs:', err);
+          allNonHymnalSongs = [];
+        }
+
+        // Sort numerically if filenames start with numbers
+        allNonHymnalSongs.sort((a, b) => {
+          const numA = parseInt(a.match(/^\d+/)?.[0] || '999999');
+          const numB = parseInt(b.match(/^\d+/)?.[0] || '999999');
+          return numA - numB;
+        });
+
+        displayNonHymnalSongs(allNonHymnalSongs);
+      }
+
+      function displayNonHymnalSongs(songs) {
+        const list = document.getElementById('non-hymnal-songs');
+        list.innerHTML = '';
+        if (!songs || songs.length === 0) {
+          list.innerHTML = '<div style="color: #999; padding: 10px; text-align: center;">No files found in Non-Hymnal folder.</div>';
+          return;
+        }
+        songs.forEach(name => {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.textContent = name.replace(/\.txt$/, '');
+          div.onclick = () => openNonHymnalSong(name);
+          list.appendChild(div);
+        });
+      }
+
+      async function openNonHymnalSong(name) {
+        const slides = await ipcRenderer.invoke('load-non-hymnal-song', name);
+        ipcRenderer.send('song-loaded', { name, slides });
+      }
+
+      // Non-Hymnal search
+      document.getElementById('non-hymnal-search').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filtered = allNonHymnalSongs.filter(song => song.toLowerCase().includes(searchTerm));
+        displayNonHymnalSongs(filtered);
+      });
+
       // Presentations functionality
       let allPresentations = [];
 
@@ -2048,6 +2109,7 @@
       loadEnglishSongs();
       loadServiceSlides();
       loadPresentations();
+  loadNonHymnalSongs();
       loadAudioFiles();
       loadVideoFiles();
       loadImages();
