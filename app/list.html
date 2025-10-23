@@ -698,6 +698,39 @@
         content.classList.toggle('collapsed');
         icon.classList.toggle('collapsed');
         icon.textContent = content.classList.contains('collapsed') ? '📁' : '📂';
+        // If this folder contains service slides, and it's now expanded, send all slides to Control window
+        try {
+          const serviceListEl = document.getElementById(`${folderName}-service-list`);
+          if (serviceListEl && !content.classList.contains('collapsed')) {
+            // Build slides array in the same format used when opening a single service slide
+            const slidesForService = serviceSlides
+              .filter(s => s.service === folderName)
+              .map(s => {
+                if (s.type === 'visual' && s.elements) {
+                  return { type: 'visual', elements: s.elements };
+                } else if (s.type === 'title') {
+                  let slideText = `[TITLE]\n${s.titleText || ''}`;
+                  if (s.titleSubtitle) slideText += `\n\n${s.titleSubtitle}`;
+                  return slideText;
+                } else if (s.type === 'bible') {
+                  return `[BIBLE]\n${s.verseText || ''}\n\n${s.reference || ''}`;
+                } else {
+                  // normal service slide
+                  let slideText = s.position || '';
+                  if (s.title) slideText += `\n\n${s.title}`;
+                  slideText += `\n\n${s.name || ''}`;
+                  return `[SERVICE]\n${slideText}`;
+                }
+              });
+
+            // Send to Control window so thumbnails populate
+            const displayName = `Service: ${folderName}`;
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('song-loaded', { name: displayName, slides: slidesForService });
+          }
+        } catch (err) {
+          console.error('Error sending service slides to control:', err);
+        }
       }
 
       // Service slides functionality

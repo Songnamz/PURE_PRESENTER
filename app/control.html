@@ -528,8 +528,7 @@
       let currentSongName = '';
       let projectorOpen = false;
       let projectorHidden = false;
-      let isServiceSlide = false; // Track if current slide is a service slide
-      let isBibleVerse = false; // Track if current slide is a Bible verse
+  let isServiceSlide = false; // Track if current slide is a service slide
   let imageDisplayedState = false; // Track whether current content on Display2 is an image
   let displayShowing = false; // whether Display2 is currently open
 
@@ -539,12 +538,12 @@
         
         // Populate hymnal background selector
         const hymnalSelect = document.getElementById('background-select');
-        backgrounds.forEach(bg => {
-          const option = document.createElement('option');
-          option.value = bg;
-          option.textContent = bg;
-          hymnalSelect.appendChild(option);
-        });
+          backgrounds.forEach(bg => {
+            const option = document.createElement('option');
+            option.value = bg;
+            option.textContent = bg;
+            hymnalSelect.appendChild(option);
+          });
         
         // Populate service background selector
         const serviceSelect = document.getElementById('service-background-select');
@@ -555,28 +554,15 @@
           serviceSelect.appendChild(option);
         });
         
-        // Populate Bible verse background selector
-        const bibleSelect = document.getElementById('bible-background-select');
-        backgrounds.forEach(bg => {
-          const option = document.createElement('option');
-          option.value = bg;
-          option.textContent = bg;
-          bibleSelect.appendChild(option);
-        });
-        
         // Restore saved background selections from localStorage
         const savedHymnalBg = localStorage.getItem('hymnal-background');
         const savedServiceBg = localStorage.getItem('service-background');
-        const savedBibleBg = localStorage.getItem('bible-background');
         
         if (savedHymnalBg) {
           hymnalSelect.value = savedHymnalBg;
         }
         if (savedServiceBg) {
           serviceSelect.value = savedServiceBg;
-        }
-        if (savedBibleBg) {
-          bibleSelect.value = savedBibleBg;
         }
         // Apply selected background to editor canvas so user can preview placement
         const editorCanvasEl = document.getElementById('editorCanvas');
@@ -595,10 +581,12 @@
             editorCanvasEl.style.backgroundColor = '';
           }
         };
-        // Apply hymnal/service/bible saved selection depending on which is active
-        // Default to hymnal background if none selected for service
-        const initialBg = savedServiceBg || savedHymnalBg || savedBibleBg || '';
+  // Apply hymnal/service saved selection depending on which is active
+  // Default to hymnal background if none selected for service
+  const initialBg = savedServiceBg || savedHymnalBg || '';
         if (initialBg) applyBg(initialBg);
+        // Inform main process of the restored background so Display2 can use it on startup
+        try { if (initialBg) ipcRenderer.send('set-background', initialBg); } catch (err) { console.error('Failed to send restored background to main process:', err); }
       }
 
       // Load system fonts
@@ -680,22 +668,18 @@
         
         // Save selection to localStorage
         localStorage.setItem('hymnal-background', filename);
-        
-        // Only apply if currently showing a hymnal slide
-        if (!isServiceSlide && !isBibleVerse && currentSlides.length > 0) {
-          ipcRenderer.send('set-background', filename);
-          // Also apply to editor canvas for preview
-          const editorCanvasEl = document.getElementById('editorCanvas');
-          if (filename) {
-            ipcRenderer.invoke('get-background-path', filename).then(abs => {
-              if (abs) editorCanvasEl.style.backgroundImage = `url("file:///${abs.replace(/\\/g, '/')}")`;
-            });
-          } else {
-            editorCanvasEl.style.backgroundImage = '';
-            editorCanvasEl.style.backgroundColor = '#000';
-          }
+        // Always inform main process so Display2 updates and selection is remembered
+        ipcRenderer.send('set-background', filename || '');
+        // Also apply to editor canvas for preview
+        const editorCanvasEl = document.getElementById('editorCanvas');
+        if (filename) {
+          ipcRenderer.invoke('get-background-path', filename).then(abs => {
+            if (abs) editorCanvasEl.style.backgroundImage = `url("file:///${abs.replace(/\\/g, '/')}")`;
+          });
+        } else {
+          editorCanvasEl.style.backgroundImage = '';
+          editorCanvasEl.style.backgroundColor = '#000';
         }
-        // Otherwise just store the selection for later use
       }
 
       // Change service background
@@ -705,48 +689,21 @@
         
         // Save selection to localStorage
         localStorage.setItem('service-background', filename);
-        
-        // Only apply if currently showing a service slide
-        if (isServiceSlide && currentSlides.length > 0) {
-          ipcRenderer.send('set-background', filename);
-          // Apply to editor canvas for preview
-          const editorCanvasEl = document.getElementById('editorCanvas');
-          if (filename) {
-            ipcRenderer.invoke('get-background-path', filename).then(abs => {
-              if (abs) editorCanvasEl.style.backgroundImage = `url("file:///${abs.replace(/\\/g, '/')}")`;
-            });
-          } else {
-            editorCanvasEl.style.backgroundImage = '';
-            editorCanvasEl.style.backgroundColor = '#000';
-          }
+        // Always inform main process so Display2 updates and selection is remembered
+        ipcRenderer.send('set-background', filename || '');
+        // Apply to editor canvas for preview
+        const editorCanvasEl = document.getElementById('editorCanvas');
+        if (filename) {
+          ipcRenderer.invoke('get-background-path', filename).then(abs => {
+            if (abs) editorCanvasEl.style.backgroundImage = `url("file:///${abs.replace(/\\/g, '/')}")`;
+          });
+        } else {
+          editorCanvasEl.style.backgroundImage = '';
+          editorCanvasEl.style.backgroundColor = '#000';
         }
-        // Otherwise just store the selection for later use
       }
 
-      // Change Bible verse background
-      function changeBibleBackground() {
-        const select = document.getElementById('bible-background-select');
-        const filename = select.value;
-        
-        // Save selection to localStorage
-        localStorage.setItem('bible-background', filename);
-        
-        // Only apply if currently showing a Bible verse
-        if (isBibleVerse && currentSlides.length > 0) {
-          ipcRenderer.send('set-background', filename);
-          // Apply to editor canvas for preview
-          const editorCanvasEl = document.getElementById('editorCanvas');
-          if (filename) {
-            ipcRenderer.invoke('get-background-path', filename).then(abs => {
-              if (abs) editorCanvasEl.style.backgroundImage = `url("file:///${abs.replace(/\\/g, '/')}")`;
-            });
-          } else {
-            editorCanvasEl.style.backgroundImage = '';
-            editorCanvasEl.style.backgroundColor = '#000';
-          }
-        }
-        // Otherwise just store the selection for later use
-      }
+      // (Bible background removed) -- we only support service and hymnal backgrounds
 
       // Listen for song loaded from list window
       ipcRenderer.on('song-loaded', (_, data) => {
@@ -755,43 +712,23 @@
         currentSongName = data.name;
         currentIndex = 0;
         
-        // Detect if this is a service slide, Bible verse, or visual slide
-        isServiceSlide = data.name.startsWith('Service:') || 
-                        data.name.startsWith('Title:') || 
-                        data.name === 'Visual Slide' ||
-                        (data.slides.length > 0 && data.slides[0].type === 'visual');
-        isBibleVerse = data.name.startsWith('Bible:');
+  // Detect if this is a service slide or visual slide
+  isServiceSlide = data.name.startsWith('Service:') || 
+      data.name.startsWith('Title:') || 
+      data.name === 'Visual Slide' ||
+      (data.slides.length > 0 && data.slides[0].type === 'visual');
         
         
         if (currentSlides.length > 0) {
-          // Apply appropriate background when song loads
-          if (isBibleVerse) {
-            const select = document.getElementById('bible-background-select');
-            const filename = select.value;
-            if (filename) {
-              ipcRenderer.send('set-background', filename);
-            } else {
-              // No Bible background selected, clear background
-              ipcRenderer.send('set-background', '');
-            }
-          } else if (isServiceSlide) {
+          // Apply appropriate background when song loads: service slide uses service background, otherwise hymnal background
+          if (isServiceSlide) {
             const select = document.getElementById('service-background-select');
-            const filename = select.value;
-            if (filename) {
-              ipcRenderer.send('set-background', filename);
-            } else {
-              // No service background selected, clear background
-              ipcRenderer.send('set-background', '');
-            }
+            const filename = select.value || '';
+            ipcRenderer.send('set-background', filename);
           } else {
             const select = document.getElementById('background-select');
-            const filename = select.value;
-            if (filename) {
-              ipcRenderer.send('set-background', filename);
-            } else {
-              // No hymnal background selected, use first available or clear
-              ipcRenderer.send('set-background', '');
-            }
+            const filename = select.value || '';
+            ipcRenderer.send('set-background', filename);
           }
           createSlideDots();
           showSlide();
