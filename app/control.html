@@ -582,8 +582,8 @@
           }
         };
   // Apply hymnal/service saved selection depending on which is active
-  // Default to hymnal background if none selected for service
-  const initialBg = savedServiceBg || savedHymnalBg || '';
+  // Prefer hymnal background on startup; fall back to service background
+  const initialBg = savedHymnalBg || savedServiceBg || '';
         if (initialBg) applyBg(initialBg);
         // Inform main process of the restored background so Display2 can use it on startup
         try { if (initialBg) ipcRenderer.send('set-background', initialBg); } catch (err) { console.error('Failed to send restored background to main process:', err); }
