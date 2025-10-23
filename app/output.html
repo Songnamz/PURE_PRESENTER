@@ -403,65 +403,28 @@
         
         // Check if this is a visual slide
         if (typeof data === 'object' && data !== null && data.type === 'visual') {
-          // Display visual slide with custom elements
           const elements = data.elements || [];
-          
           // Reset background and styles
           lyricsDiv.style.background = 'transparent';
           lyricsDiv.style.padding = '0';
           lyricsDiv.style.overflow = 'hidden';
-          
-          // Create container for visual elements
-          let html = '<div style="position:relative; width:100vw; height:100vh; overflow:hidden;">';
-          
-          // Render each text element
-          elements.forEach((element, idx) => {
-            const text = element.text || '';
-            const x = element.x || 0;
-            const y = element.y || 0;
-            const fontSize = (element.fontSize || 48);
-            const color = element.color || '#ffffff';
-            const align = element.align || 'center';
-            
-            // Scale coordinates from editor (1000x600) to fullscreen
-            const scaleX = 100 / 1000; // Convert to vw
-            const scaleY = 100 / 600;  // Convert to vh
-            const scaledX = x * scaleX;
-            const scaledY = y * scaleY;
-            // Apply global font size multiplier so projector font controls affect visual slides
-            const scaledFontSize = (fontSize / 1000) * 100 * fontSizeMultiplier; // Convert to vw units and scale
+
+          let html = '<div style="width:100vw; height:100vh; position:relative;">';
+          elements.forEach((el, idx) => {
+            const text = el.text || '';
+            const leftPct = (el.x !== undefined) ? el.x : 50;
+            const topPct = (el.y !== undefined) ? el.y : 50;
+            const fontVW = (el.fontSize !== undefined) ? el.fontSize : 6; // vw
+            const color = el.color || '#ffffff';
+            const align = el.align || 'center';
             const fontCSS = getFontFamilyCSS(currentFontFamily);
 
-            // Estimate element width in vw if width not provided (approx char * font-size * factor)
-            const estElemWidthVW = Math.min(100 - scaledX, (text.length * scaledFontSize * 0.55));
-
-            // Positioning: always anchor at top-left, vertically center
-            let leftPos = scaledX;
-            // Remove vertical centering so top-left matches editor
-            // Estimate element size at base font (in editor px) to compute center anchor
-            const editorW = 1000;
-            const editorH = 600;
-            const vwPx = window.innerWidth;
-            const vhPx = window.innerHeight;
-            const baseFontPx = (fontSize || 48); // element.fontSize in px
-            const chars = (text || '').length || 1;
-            const estWidthPxBase = Math.min(editorW - (element.x || 0), chars * baseFontPx * 0.6);
-            const lines = (text || '').split('\n').length;
-            const estHeightPxBase = baseFontPx * lines * 1.2;
-
-            // Compute center in editor pixels, then map to viewport pixels
-            const centerEditorX = (element.x || 0) + estWidthPxBase / 2;
-            const centerEditorY = (element.y || 0) + estHeightPxBase / 2;
-            const centerPxX = centerEditorX * (vwPx / editorW);
-            const centerPxY = centerEditorY * (vhPx / editorH);
-
-            // Create absolutely positioned element anchored at its center (px coordinates)
-            html += `<div id=\"visual-el-${idx}\" style=\"position:absolute; left:${centerPxX}px; top:${centerPxY}px; transform: translate(-50%, -50%); font-size:${scaledFontSize}vw; color:${color}; text-align:${align}; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); white-space:pre-wrap; max-width:${estElemWidthVW}vw; font-family:${fontCSS};\">${text}</div>`;
+            html += `<div id=\"visual-el-${idx}\" style=\"position:absolute; left:${leftPct}%; top:${topPct}%; transform:translate(-50%, -50%); font-size:${fontVW}vw; color:${color}; text-align:${align}; white-space:pre-wrap; line-height:1.2; font-family:${fontCSS}; text-shadow:2px 2px 4px rgba(0,0,0,0.8);\">${text}</div>`;
           });
-          
           html += '</div>';
           lyricsDiv.innerHTML = html;
-          // Debug overlay for visual elements
+
+          // Optional debug overlay
           if (debugOverlay) {
             const old = document.getElementById('debug-overlay');
             if (old) old.remove();
@@ -489,7 +452,6 @@
             overlay.appendChild(center);
             document.body.appendChild(overlay);
 
-            // draw bounding boxes for each visual element
             setTimeout(() => {
               elements.forEach((el, i) => {
                 const dom = document.getElementById('visual-el-' + i);
@@ -506,17 +468,6 @@
                   box.style.pointerEvents = 'none';
                   box.style.zIndex = '100001';
                   overlay.appendChild(box);
-
-                  const ic = document.createElement('div');
-                  ic.style.position = 'absolute';
-                  ic.style.left = (rect.width/2 - 4) + 'px';
-                  ic.style.top = (rect.height/2 - 4) + 'px';
-                  ic.style.width = '8px';
-                  ic.style.height = '8px';
-                  ic.style.background = 'blue';
-                  ic.style.borderRadius = '50%';
-                  ic.style.opacity = '0.9';
-                  box.appendChild(ic);
                 }
               });
             }, 10);

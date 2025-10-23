@@ -249,8 +249,8 @@
       }
 
       .editor-canvas {
-        width: 1000px;
-        height: 600px;
+        width: 960px;
+        height: 540px;
         background: #000 center/cover no-repeat;
         border: 2px solid #667eea;
         border-radius: 8px;
@@ -292,13 +292,15 @@
       .text-element {
         position: absolute;
         color: white;
-        cursor: move; /* show move cursor by default */
+        cursor: move;
         padding: 10px;
         border: 2px dashed transparent;
-        user-select: none; /* prevent text selection during drag */
+        user-select: none;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        outline: none; /* hide default outline on focus */
-        z-index: 10; /* ensure text elements are above snap guides */
+        outline: none;
+        z-index: 10;
+        text-align: center; /* Default center align */
+        transform: translate(-50%, -50%); /* Position based on center */
       }
       
       .text-element.editing {
@@ -1285,9 +1287,12 @@
           element.className = 'text-element';
           element.id = elemData.id;
           element.textContent = elemData.text;
-          element.style.left = elemData.x + 'px';
-          element.style.top = elemData.y + 'px';
-          element.style.fontSize = elemData.fontSize + 'px';
+          // elemData.x/y are percent, fontSize is vw
+          const canvas = document.getElementById('editorCanvas');
+          element.style.left = (elemData.x !== undefined ? elemData.x : 50) + '%';
+          element.style.top = (elemData.y !== undefined ? elemData.y : 50) + '%';
+          const fontPx = (elemData.fontSize !== undefined) ? ((elemData.fontSize / 100) * (canvas.clientWidth || 960)) : 48;
+          element.style.fontSize = fontPx + 'px';
           element.style.color = elemData.color;
           element.style.textAlign = elemData.align;
           element.contentEditable = true;
@@ -1402,16 +1407,13 @@
         const element = document.createElement('div');
         element.className = 'text-element';
         element.id = 'element-' + (elementIdCounter++);
-        element.textContent = 'Click to edit';
-        element.style.left = '50px';
-        element.style.top = '50px';
-        const toolbarFont = document.getElementById('fontSize');
-        const initialFont = (toolbarFont && toolbarFont.value) ? parseInt(toolbarFont.value) : 48;
-        element.style.fontSize = initialFont + 'px';
+        element.textContent = 'New Text';
+        element.style.left = '50%';
+        element.style.top = '50%';
+        element.style.fontSize = '48px'; /* Initial px; will convert to vw on save */
         element.style.color = '#ffffff';
-        element.style.textAlign = 'center';
-        element.contentEditable = true; // Make directly editable
-        element.setAttribute('data-placeholder', 'Click to edit');
+        element.style.textAlign = 'center'; /* Ensure center */
+        element.contentEditable = true;
         
         // Add event listeners
         element.addEventListener('mousedown', startDrag);
@@ -1420,16 +1422,12 @@
         element.addEventListener('input', updateElementText);
         element.addEventListener('blur', finishEditing);
         
-        canvas.appendChild(element);
-        editorElements.push({
-          id: element.id,
-          text: element.textContent,
-          x: 50,
-          y: 50,
-          fontSize: initialFont,
-          color: '#ffffff',
-          align: 'center'
-        });
+  canvas.appendChild(element);
+  canvas.appendChild(element);
+  // Store as percent positions and vw fontSize
+  const canvasW = canvas.clientWidth || 960;
+  editorElements.push({ id: element.id, x: 50, y: 50, fontSize: (48 / canvasW * 100), text: element.textContent, color: '#ffffff', align: 'center' });
+        selectElement({ target: element });
         
         selectElement({ target: element });
         // Start in editing mode for new elements
@@ -1473,97 +1471,78 @@
         }
       }
 
-      // Start Drag
+      // Start Drag (percent-based positions)
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragStartLeft = 50;
+      let dragStartTop = 50;
+
       function startDrag(e) {
-        if (e.target.classList.contains('text-element')) {
-          // Check if element is in editing mode
-          if (e.target.classList.contains('editing')) {
-            // Already editing, allow text interaction
-            return;
-          }
+        // only left button and non-editing
+        if (e.button !== 0) return;
+        if (!e.target.classList.contains('text-element')) return;
+        if (e.target.classList.contains('editing')) return;
 
-          // Save state before dragging
-          saveStateForUndo();
-          
-          // Start dragging
-          isDragging = true;
-          selectedElement = e.target;
-          selectElement(e);
-          
-          const rect = selectedElement.getBoundingClientRect();
-          const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
-          // Calculate offset as the mouse position relative to the element's top-left
-          dragOffsetX = e.clientX - rect.left;
-          dragOffsetY = e.clientY - rect.top;
-          
-          document.addEventListener('mousemove', drag);
-          document.addEventListener('mouseup', stopDrag);
-          
-          e.preventDefault();
+        saveStateForUndo();
+
+        selectedElement = e.target;
+        selectElement(e);
+
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+
+        // parse percent left/top (fallback to 50)
+        dragStartLeft = parseFloat(selectedElement.style.left) || 50;
+        dragStartTop = parseFloat(selectedElement.style.top) || 50;
+
+        document.addEventListener('mousemove', dragElement);
+        document.addEventListener('mouseup', stopDrag);
+
+        e.preventDefault();
+      }
+
+      function dragElement(e) {
+        if (!selectedElement) return;
+        const rect = document.getElementById('editorCanvas').getBoundingClientRect();
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        let newLeft = dragStartLeft + (dx / rect.width * 100);
+        let newTop = dragStartTop + (dy / rect.height * 100);
+
+        // clamp
+        newLeft = Math.max(0, Math.min(100, newLeft));
+        newTop = Math.max(0, Math.min(100, newTop));
+
+        // snap to center (percent)
+        const snapThreshold = 2; // percent
+        if (Math.abs(newLeft - 50) < snapThreshold) newLeft = 50;
+        if (Math.abs(newTop - 50) < snapThreshold) newTop = 50;
+
+        const sgH = document.getElementById('snapGuideHorizontal');
+        const sgV = document.getElementById('snapGuideVertical');
+        if (sgH) sgH.classList.toggle('visible', Math.abs(newTop - 50) < snapThreshold);
+        if (sgV) sgV.classList.toggle('visible', Math.abs(newLeft - 50) < snapThreshold);
+
+        selectedElement.style.left = newLeft + '%';
+        selectedElement.style.top = newTop + '%';
+
+        // Update model (store percent)
+        const elemData = editorElements.find(el => el.id === selectedElement.id);
+        if (elemData) {
+          elemData.x = newLeft;
+          elemData.y = newTop;
         }
       }
 
-      // Drag
-      function drag(e) {
-        if (isDragging && selectedElement) {
-          const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
-          // Calculate new position: mouse position relative to canvas minus the offset
-          let x = e.clientX - canvasRect.left - dragOffsetX;
-          let y = e.clientY - canvasRect.top - dragOffsetY;
-          
-          // Keep within bounds
-          x = Math.max(0, Math.min(x, canvasRect.width - selectedElement.offsetWidth));
-          y = Math.max(0, Math.min(y, canvasRect.height - selectedElement.offsetHeight));
-          
-          // Snap to center functionality
-          const snapThreshold = 15; // pixels
-          const canvasCenterX = canvasRect.width / 2;
-          const canvasCenterY = canvasRect.height / 2;
-          const elementCenterX = x + selectedElement.offsetWidth / 2;
-          const elementCenterY = y + selectedElement.offsetHeight / 2;
-          
-          const snapGuideH = document.getElementById('snapGuideHorizontal');
-          const snapGuideV = document.getElementById('snapGuideVertical');
-          
-          // Check horizontal center snap
-          if (Math.abs(elementCenterY - canvasCenterY) < snapThreshold) {
-            y = canvasCenterY - selectedElement.offsetHeight / 2;
-            snapGuideH.classList.add('visible');
-          } else {
-            snapGuideH.classList.remove('visible');
-          }
-          
-          // Check vertical center snap
-          if (Math.abs(elementCenterX - canvasCenterX) < snapThreshold) {
-            x = canvasCenterX - selectedElement.offsetWidth / 2;
-            snapGuideV.classList.add('visible');
-          } else {
-            snapGuideV.classList.remove('visible');
-          }
-          
-          selectedElement.style.left = x + 'px';
-          selectedElement.style.top = y + 'px';
-          
-          // Update in elements array
-          const elemData = editorElements.find(el => el.id === selectedElement.id);
-          if (elemData) {
-            elemData.x = x;
-            elemData.y = y;
-          }
-        }
-      }
-
-      // Stop Drag
       function stopDrag() {
-        isDragging = false;
-        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('mousemove', dragElement);
         document.removeEventListener('mouseup', stopDrag);
-        
-        // Hide snap guides when drag stops
-        const snapGuideH = document.getElementById('snapGuideHorizontal');
-        const snapGuideV = document.getElementById('snapGuideVertical');
-        if (snapGuideH) snapGuideH.classList.remove('visible');
-        if (snapGuideV) snapGuideV.classList.remove('visible');
+        selectedElement = null;
+
+        const sgH = document.getElementById('snapGuideHorizontal');
+        const sgV = document.getElementById('snapGuideVertical');
+        if (sgH) sgH.classList.remove('visible');
+        if (sgV) sgV.classList.remove('visible');
       }
 
       // Update element text when content changes
@@ -1591,31 +1570,36 @@
         if (selectedElement) {
           const fontSize = document.getElementById('fontSize').value;
           const textColor = document.getElementById('textColor').value;
-          // Preserve visual center when changing font size
-          const oldWidth = selectedElement.offsetWidth;
-          const oldLeft = parseFloat(selectedElement.style.left) || 0;
-          const align = selectedElement.style.textAlign || 'center';
+          // Update font size and color, preserve visual center using percent coords
+          const canvas = document.getElementById('editorCanvas');
+          const canvasRect = canvas.getBoundingClientRect();
 
-          selectedElement.style.fontSize = fontSize + 'px';
+          // compute current center in pixels
+          const beforeRect = selectedElement.getBoundingClientRect();
+          const centerPxX = beforeRect.left - canvasRect.left + beforeRect.width / 2;
+          const centerPxY = beforeRect.top - canvasRect.top + beforeRect.height / 2;
+
+          // apply new font size
+          const fontPx = parseFloat(fontSize) || 48;
+          selectedElement.style.fontSize = fontPx + 'px';
           selectedElement.style.color = textColor;
 
-          // After font change, compute new width and adjust left to keep centered/right alignment visually stable
-          const newWidth = selectedElement.offsetWidth;
-          const delta = newWidth - oldWidth;
-          if (align === 'center') {
-            // Move left by half the width increase so center remains at same position
-            selectedElement.style.left = (oldLeft - delta / 2) + 'px';
-          } else if (align === 'right') {
-            // Move left by full delta so right edge stays anchored
-            selectedElement.style.left = (oldLeft - delta) + 'px';
-          }
+          // compute new center and adjust left/top percent to keep same center
+          const afterRect = selectedElement.getBoundingClientRect();
+          const desiredCenterPctX = (centerPxX / canvasRect.width) * 100;
+          const desiredCenterPctY = (centerPxY / canvasRect.height) * 100;
+
+          selectedElement.style.left = desiredCenterPctX + '%';
+          selectedElement.style.top = desiredCenterPctY + '%';
           
-          // Update in elements array
+          // Update in elements array (store font size as vw)
           const elemData = editorElements.find(el => el.id === selectedElement.id);
           if (elemData) {
-            elemData.fontSize = parseInt(fontSize);
+            const canvasW = canvas.clientWidth || 960;
+            elemData.fontSize = (fontPx / canvasW * 100);
             elemData.color = textColor;
             elemData.x = parseFloat(selectedElement.style.left) || elemData.x;
+            elemData.y = parseFloat(selectedElement.style.top) || elemData.y;
           }
         }
       }
@@ -1638,30 +1622,31 @@
       function alignBoxHorizontal(alignment) {
         if (selectedElement) {
           saveStateForUndo(); // Save state before aligning
-          
-          const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
+          const canvas = document.getElementById('editorCanvas');
+          const canvasRect = canvas.getBoundingClientRect();
           const canvasWidth = canvasRect.width;
           const boxWidth = selectedElement.offsetWidth;
-          let newX;
-          
+          let newLeftPx;
+
           switch(alignment) {
             case 'left':
-              newX = 0;
+              newLeftPx = 0 + boxWidth / 2;
               break;
             case 'center':
-              newX = (canvasWidth - boxWidth) / 2;
+              newLeftPx = canvasWidth / 2;
               break;
             case 'right':
-              newX = canvasWidth - boxWidth;
+              newLeftPx = canvasWidth - boxWidth / 2;
               break;
           }
-          
-          selectedElement.style.left = newX + 'px';
-          
-          // Update in elements array
+
+          const newLeftPct = (newLeftPx / canvasWidth) * 100;
+          selectedElement.style.left = newLeftPct + '%';
+
+          // Update model
           const elemData = editorElements.find(el => el.id === selectedElement.id);
           if (elemData) {
-            elemData.x = newX;
+            elemData.x = newLeftPct;
           }
           console.log('Aligned box horizontally to:', alignment);
         }
@@ -1671,30 +1656,31 @@
       function alignBoxVertical(alignment) {
         if (selectedElement) {
           saveStateForUndo(); // Save state before aligning
-          
-          const canvasRect = document.getElementById('editorCanvas').getBoundingClientRect();
+          const canvas = document.getElementById('editorCanvas');
+          const canvasRect = canvas.getBoundingClientRect();
           const canvasHeight = canvasRect.height;
           const boxHeight = selectedElement.offsetHeight;
-          let newY;
-          
+          let newTopPx;
+
           switch(alignment) {
             case 'top':
-              newY = 0;
+              newTopPx = 0 + boxHeight / 2;
               break;
             case 'middle':
-              newY = (canvasHeight - boxHeight) / 2;
+              newTopPx = canvasHeight / 2;
               break;
             case 'bottom':
-              newY = canvasHeight - boxHeight;
+              newTopPx = canvasHeight - boxHeight / 2;
               break;
           }
-          
-          selectedElement.style.top = newY + 'px';
-          
-          // Update in elements array
+
+          const newTopPct = (newTopPx / canvasHeight) * 100;
+          selectedElement.style.top = newTopPct + '%';
+
+          // Update model
           const elemData = editorElements.find(el => el.id === selectedElement.id);
           if (elemData) {
-            elemData.y = newY;
+            elemData.y = newTopPct;
           }
           console.log('Aligned box vertically to:', alignment);
         }
@@ -1729,21 +1715,32 @@
           return;
         }
         
-        // Convert elements to service slide format
+        // Convert elements to service slide format (store percent positions and fontSize as vw)
+        const canvas = document.getElementById('editorCanvas');
+        const canvasW = canvas.clientWidth || 960;
         const slideData = {
           type: 'visual',
           service: currentEditingService,
-          elements: editorElements.map(el => ({
-            type: el.type || 'text',
-            text: el.text,
-            x: el.x,
-            y: el.y,
-            fontSize: el.fontSize,
-            color: el.color,
-            align: el.align,
-            width: el.width,
-            height: el.height
-          }))
+          elements: editorElements.map(el => {
+            // read live DOM element to capture percent left/top and actual font size
+            const dom = document.getElementById(el.id);
+            const leftPct = dom ? (parseFloat(dom.style.left) || el.x || 50) : (el.x || 50);
+            const topPct = dom ? (parseFloat(dom.style.top) || el.y || 50) : (el.y || 50);
+            const fontPx = dom ? (parseFloat(window.getComputedStyle(dom).fontSize) || el.fontSize || 48) : (el.fontSize || 48);
+
+            return {
+              type: el.type || 'text',
+              text: dom ? dom.textContent : el.text,
+              x: leftPct,
+              y: topPct,
+              // convert px font to vw based on canvas width
+              fontSize: (fontPx / canvasW * 100),
+              color: dom ? (dom.style.color || el.color) : el.color,
+              align: dom ? (dom.style.textAlign || el.align) : el.align,
+              width: el.width,
+              height: el.height
+            };
+          })
         };
         
         // If editing existing slide, include the editing index
@@ -1805,9 +1802,12 @@
             element.className = 'text-element';
             element.id = 'element-' + (elementIdCounter++);
             element.textContent = elementData.text;
-            element.style.left = elementData.x + 'px';
-            element.style.top = elementData.y + 'px';
-            element.style.fontSize = elementData.fontSize + 'px';
+            // Positions are stored as percent (x/y) and fontSize as vw
+            element.style.left = (elementData.x !== undefined ? elementData.x : 50) + '%';
+            element.style.top = (elementData.y !== undefined ? elementData.y : 50) + '%';
+            const canvas = document.getElementById('editorCanvas');
+            const fontPx = (elementData.fontSize !== undefined) ? ((elementData.fontSize / 100) * (canvas.clientWidth || 960)) : 48;
+            element.style.fontSize = fontPx + 'px';
             element.style.color = elementData.color;
             element.style.textAlign = elementData.align;
             element.contentEditable = true; // Make directly editable
@@ -1821,13 +1821,13 @@
             
             canvas.appendChild(element);
             
-            // Add to editor elements array
+            // Add to editor elements array (store percent coords and vw fontSize)
             editorElements.push({
               id: element.id,
               text: elementData.text,
               x: elementData.x,
               y: elementData.y,
-              fontSize: elementData.fontSize,
+              fontSize: elementData.fontSize, // vw units
               color: elementData.color,
               align: elementData.align
             });
@@ -1887,13 +1887,14 @@
               });
             }
           } else {
-            // Convert normal slide to visual elements
+            // Convert normal slide to visual elements (use percent positions and vw font sizes)
+            const canvasW = (document.getElementById('editorCanvas') && document.getElementById('editorCanvas').clientWidth) ? document.getElementById('editorCanvas').clientWidth : 960;
             if (editingVisualSlide.position) {
               elements.push({
                 text: editingVisualSlide.position,
-                x: 100,
-                y: 150,
-                fontSize: 60,
+                x: 50,
+                y: 20,
+                fontSize: (60 / canvasW * 100),
                 color: '#ffffff',
                 align: 'center'
               });
@@ -1901,9 +1902,9 @@
             if (editingVisualSlide.title) {
               elements.push({
                 text: editingVisualSlide.title,
-                x: 100,
-                y: 250,
-                fontSize: 48,
+                x: 50,
+                y: 40,
+                fontSize: (48 / canvasW * 100),
                 color: '#a8e063',
                 align: 'center'
               });
@@ -1911,9 +1912,9 @@
             if (editingVisualSlide.name) {
               elements.push({
                 text: editingVisualSlide.name,
-                x: 100,
-                y: 350,
-                fontSize: 42,
+                x: 50,
+                y: 60,
+                fontSize: (42 / canvasW * 100),
                 color: '#ffffff',
                 align: 'center'
               });
@@ -1926,9 +1927,12 @@
             element.className = 'text-element';
             element.id = 'element-' + (elementIdCounter++);
             element.textContent = elementData.text;
-            element.style.left = elementData.x + 'px';
-            element.style.top = elementData.y + 'px';
-            element.style.fontSize = elementData.fontSize + 'px';
+            // elementData.x/y are percent, fontSize is vw
+            element.style.left = (elementData.x !== undefined ? elementData.x : 50) + '%';
+            element.style.top = (elementData.y !== undefined ? elementData.y : 50) + '%';
+            const canvas = document.getElementById('editorCanvas');
+            const fontPx = (elementData.fontSize !== undefined) ? ((elementData.fontSize / 100) * (canvas.clientWidth || 960)) : 48;
+            element.style.fontSize = fontPx + 'px';
             element.style.color = elementData.color;
             element.style.textAlign = elementData.align;
             element.contentEditable = true; // Make directly editable
@@ -1942,7 +1946,7 @@
             
             canvas.appendChild(element);
             
-            // Add to editor elements array
+            // Add to editor elements array (store percent and vw)
             editorElements.push({
               id: element.id,
               text: elementData.text,

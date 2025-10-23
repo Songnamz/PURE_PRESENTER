@@ -6,15 +6,42 @@
       {
         "type": "text",
         "text": "Vespers",
-        "x": 368.1000061035156,
-        "y": 242.10000610351562,
-        "fontSize": 72,
-        "color": "#ffffff",
+        "x": 50,
+        "y": 50,
+        "fontSize": 5,
+        "color": "rgb(255, 255, 255)",
         "align": "center"
       }
     ],
-    "position": "Visual Slide",
+    "position": "",
     "name": "Vespers...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "vespers",
+    "elements": [
+      {
+        "type": "text",
+        "text": "777 Prayer",
+        "x": 50,
+        "y": 38.287,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center"
+      },
+      {
+        "type": "text",
+        "text": "Dal Za Kap",
+        "x": 50,
+        "y": 62.8107,
+        "fontSize": 4.583333333333333,
+        "color": "rgb(255, 255, 255)",
+        "align": "center"
+      }
+    ],
+    "position": "",
+    "name": "777 Prayer...",
     "title": ""
   },
   {
@@ -40,33 +67,6 @@
     ],
     "position": "Visual Slide",
     "name": "Special Music...",
-    "title": ""
-  },
-  {
-    "type": "visual",
-    "service": "vespers",
-    "elements": [
-      {
-        "type": "text",
-        "text": "777 Prayer",
-        "x": 322.1000061035156,
-        "y": 194.88751220703125,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "align": "center"
-      },
-      {
-        "type": "text",
-        "text": "Dal Za Kap",
-        "x": 376.1000061035156,
-        "y": 357.30001068115234,
-        "fontSize": 48,
-        "color": "#ffffff",
-        "align": "center"
-      }
-    ],
-    "position": "",
-    "name": "777 Prayer...",
     "title": ""
   },
   {
