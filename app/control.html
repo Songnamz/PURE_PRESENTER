@@ -1295,6 +1295,64 @@
         }
       });
 
+      // Capture additional keys (including those from wireless clickers) at the capture phase
+      // so the clicker works even when focus is on controls. We still avoid stealing input while
+      // the Visual Editor text is being edited.
+      window.addEventListener('keydown', (e) => {
+        // Check if visual editor is open and user is editing text
+        const editorModal = document.getElementById('visualEditorModal');
+        const isEditorOpen = editorModal && editorModal.style.display === 'block';
+        const activeElement = document.activeElement;
+        try {
+          if (isEditorOpen && activeElement && activeElement.closest && activeElement.closest('.text-element')) {
+            // user is editing text in visual editor — don't hijack keys
+            return;
+          }
+        } catch (err) {}
+
+        // Map of keys that should move forward/backwards
+        const forwardKeys = new Set(['ArrowRight', ' ', 'PageDown', 'MediaTrackNext', 'Enter']);
+        const backwardKeys = new Set(['ArrowLeft', 'PageUp', 'MediaTrackPrevious']);
+
+        const keyName = e.key || e.code || '';
+
+        // Also accept single-letter clicker keys (N/P)
+        if (typeof keyName === 'string') {
+          const k = keyName.toLowerCase();
+          if (k === 'n') forwardKeys.add('n');
+          if (k === 'p') backwardKeys.add('p');
+        }
+
+        if (forwardKeys.has(e.key) || forwardKeys.has(e.code) || e.key === 'n' || e.key === 'N') {
+          e.preventDefault();
+          nextSlide();
+          return;
+        }
+
+        if (backwardKeys.has(e.key) || backwardKeys.has(e.code) || e.key === 'p' || e.key === 'P') {
+          e.preventDefault();
+          prevSlide();
+          return;
+        }
+      }, true /* use capture so we see device keys before focused controls */);
+
+      // Handle auxiliary mouse buttons (X1/X2) which many clickers map to
+      window.addEventListener('auxclick', (e) => {
+        try {
+          // Buttons: 3 = X1 (often 'back'), 4 = X2 (often 'forward') in some environments
+          if (e.button === 3) { e.preventDefault(); prevSlide(); }
+          else if (e.button === 4) { e.preventDefault(); nextSlide(); }
+        } catch (err) {}
+      });
+
+      // Also listen for mouseup for extra compatibility with clickers that emit mouseup only
+      window.addEventListener('mouseup', (e) => {
+        try {
+          if (e.button === 3) { e.preventDefault(); prevSlide(); }
+          else if (e.button === 4) { e.preventDefault(); nextSlide(); }
+        } catch (err) {}
+      });
+
       // Visual Editor Variables
       let editorElements = [];
       let selectedElement = null;
