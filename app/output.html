@@ -22,7 +22,7 @@
   </head>
   <body style="background:black; color:white; margin:0; padding:0; overflow:hidden; height:100vh; width:100vw; background-size:cover; background-position:center; background-repeat:no-repeat;">
     <div id="lyrics" style="white-space:pre-wrap; height:100vh; width:100vw; display:flex; align-items:center; justify-content:center; line-height:1.6; padding:3vw; box-sizing:border-box; text-align:center; overflow:hidden; background:rgba(0,0,0,0.5); text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
-      <div id="initial-text" style="max-height:100%; max-width:100%; overflow:hidden; font-size:10vw; font-weight:bold; letter-spacing:0.2em; font-family: Arial, sans-serif;">HAPPY SABBATH</div>
+  <div id="initial-text" style="max-height:100%; max-width:100%; overflow:hidden; font-size:10vw; font-weight:bold; letter-spacing:0.2em; font-family: 'Advent Sans Logo', Arial, sans-serif;">HAPPY SABBATH</div>
     </div>
     <script>
       const { ipcRenderer } = require('electron');
@@ -46,7 +46,7 @@
   // Declare global variables at the top
   let fontSizeMultiplier = 1.0;
   let currentSlideData = null;
-  let currentFontFamily = 'Arial';
+  let currentFontFamily = 'Advent Sans Logo';
   let originalFontSizes = new Map();
       // Debug overlay (temporary) - set to true to show center marker and bounding box
       // Default false so overlay doesn't show unless toggled
@@ -126,7 +126,7 @@
       // Helper function to format font family for CSS
       function getFontFamilyCSS(fontName) {
         // If font name contains spaces or special characters, wrap in quotes
-        if (!fontName) return 'Arial, sans-serif';
+        if (!fontName) return '"Advent Sans Logo", Arial, sans-serif';
         
         // Always quote the font name to ensure it works properly
         return `"${fontName}", Arial, sans-serif`;
@@ -154,7 +154,7 @@
         console.log('New font:', fontFamily);
         console.log('Font available?', isFontAvailable(fontFamily));
         
-        currentFontFamily = fontFamily || 'Arial';
+  currentFontFamily = fontFamily || 'Advent Sans Logo';
         
         console.log('Font set to:', currentFontFamily);
         console.log('CSS will use:', getFontFamilyCSS(currentFontFamily));

@@ -597,15 +597,15 @@
         // Clear loading option
         fontSelect.innerHTML = '';
         
-        // Add default option
-        const defaultOption = document.createElement('option');
-        defaultOption.value = 'Arial';
-        defaultOption.textContent = 'Arial (Default)';
-        fontSelect.appendChild(defaultOption);
+  // Add default option (use Advent Sans Logo as default)
+  const defaultOption = document.createElement('option');
+  defaultOption.value = 'Advent Sans Logo';
+  defaultOption.textContent = 'Advent Sans Logo (Default)';
+  fontSelect.appendChild(defaultOption);
         
         // Populate font selector
         fonts.forEach(font => {
-          if (font !== 'Arial') { // Skip Arial since we already added it as default
+          if (font !== 'Advent Sans Logo') { // Skip Advent Sans Logo since we already added it as default
             const option = document.createElement('option');
             option.value = font;
             option.textContent = font;
@@ -622,8 +622,8 @@
           // Apply saved font immediately
           ipcRenderer.send('set-font', savedFont);
         } else {
-          // Set default font
-          ipcRenderer.send('set-font', 'Arial');
+          // Set default font to Advent Sans Logo
+          ipcRenderer.send('set-font', 'Advent Sans Logo');
         }
       }
 
@@ -903,7 +903,9 @@
                         fontSizePx = Math.max(10, Math.floor((el.fontSize / srcW) * thumbW));
                       }
                     }
-                    ctx.font = `bold ${fontSizePx}px Arial`;
+                    // Use the currently selected display font (fallback to Advent Sans Logo)
+                    const thumbFont = localStorage.getItem('display-font') || 'Advent Sans Logo';
+                    ctx.font = `bold ${fontSizePx}px "${thumbFont}", Arial`;
                     ctx.fillStyle = el.color || '#fff';
                     ctx.textBaseline = 'top';
 
@@ -940,7 +942,8 @@
                 });
               }
               if (!drawn) {
-                ctx.font = 'bold 28px Arial';
+                const thumbFont = localStorage.getItem('display-font') || 'Advent Sans Logo';
+                ctx.font = `bold 28px "${thumbFont}", Arial`;
                 ctx.fillStyle = '#888';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';

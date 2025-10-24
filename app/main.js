@@ -1425,25 +1425,31 @@ ipcMain.on('set-font', (event, fontFamily) => {
     console.log('Sending update-font to projector window');
     
     // Use executeJavaScript to directly update the font (more reliable)
-    projectorWindow.webContents.executeJavaScript(`
-      if (typeof currentFontFamily !== 'undefined') {
-        console.log('Direct JS execution - setting font to: ${fontFamily}');
-        currentFontFamily = '${fontFamily}';
-        
-        // Update initial text if visible
-        const initialText = document.getElementById('initial-text');
-        if (initialText) {
-          initialText.style.fontFamily = '"${fontFamily}", Arial, sans-serif';
+    const __safeFont = JSON.stringify(fontFamily);
+    projectorWindow.webContents.executeJavaScript(`(function(){
+      const f = ${__safeFont};
+      try {
+        if (typeof currentFontFamily !== 'undefined') {
+          console.log('Direct JS execution - setting font to:', f);
+          currentFontFamily = f;
+
+          // Update initial text if visible
+          const initialText = document.getElementById('initial-text');
+          if (initialText) {
+            initialText.style.fontFamily = '"' + f + '", Arial, sans-serif';
+          }
+
+          // Re-render current slide if exists
+          if (typeof currentSlideData !== 'undefined' && currentSlideData !== null) {
+            renderSlideWithFontSize(currentSlideData);
+          }
+
+          console.log('Font applied via direct execution');
         }
-        
-        // Re-render current slide if exists
-        if (typeof currentSlideData !== 'undefined' && currentSlideData !== null) {
-          renderSlideWithFontSize(currentSlideData);
-        }
-        
-        console.log('Font applied via direct execution');
+      } catch (e) {
+        console.error('Direct JS font update failed:', e);
       }
-    `).then(() => {
+    })();`).then(() => {
       console.log('Font update executed successfully');
     }).catch(err => {
       console.error('Error executing font update:', err);
