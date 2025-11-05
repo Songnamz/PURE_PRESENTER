@@ -2,7 +2,6 @@ const { app, dialog, shell } = require('electron');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
 
 class AutoUpdater {
   constructor() {
@@ -212,49 +211,80 @@ class AutoUpdater {
       file.on('finish', () => {
         file.close(() => {
           console.log('Download complete!');
+          console.log('File saved at:', installerPath);
 
-          // Launch installer
-          const installResponse = dialog.showMessageBoxSync({
-            type: 'info',
-            title: 'Update Ready',
-            message: 'Update downloaded successfully!',
-            detail: 'The installer will now launch. PURE PRESENTER will close automatically.',
-            buttons: ['Install Now', 'Cancel'],
-            defaultId: 0
-          });
-
-          if (installResponse === 0) {
-            try {
-              // Launch installer with detached process to avoid EBUSY error
-              console.log('Launching installer:', installerPath);
-              
-              const installer = spawn(installerPath, [], {
-                detached: true,
-                stdio: 'ignore',
-                shell: false
-              });
-              
-              // Unref so parent can exit independently
-              installer.unref();
-              
-              console.log('Installer launched successfully');
-              
-              // Quit the app after launching installer
-              setTimeout(() => {
-                app.quit();
-              }, 500);
-              
-            } catch (error) {
-              console.error('Error launching installer:', error);
+          // Verify file exists and has size
+          setTimeout(() => {
+            if (!fs.existsSync(installerPath)) {
               dialog.showMessageBox({
                 type: 'error',
-                title: 'Installation Failed',
-                message: 'Failed to launch installer',
-                detail: `${error.message}\n\nYou can manually run the installer at:\n${installerPath}`,
+                title: 'Download Failed',
+                message: 'Installer file not found after download',
+                detail: `Expected path: ${installerPath}`,
                 buttons: ['OK']
               });
+              return;
             }
-          }
+
+            const stats = fs.statSync(installerPath);
+            console.log('Installer file size:', stats.size, 'bytes');
+
+            if (stats.size < 1000) {
+              dialog.showMessageBox({
+                type: 'error',
+                title: 'Download Failed',
+                message: 'Downloaded file appears to be incomplete',
+                detail: `File size: ${stats.size} bytes (too small)`,
+                buttons: ['OK']
+              });
+              return;
+            }
+
+            // Launch installer
+            const installResponse = dialog.showMessageBoxSync({
+              type: 'info',
+              title: 'Update Ready',
+              message: 'Update downloaded successfully!',
+              detail: 'The installer will now launch. PURE PRESENTER will close automatically.',
+              buttons: ['Install Now', 'Cancel'],
+              defaultId: 0
+            });
+
+            if (installResponse === 0) {
+              console.log('User clicked Install Now');
+              console.log('Launching installer:', installerPath);
+              
+              // Use shell.openPath for Windows compatibility
+              shell.openPath(installerPath).then((error) => {
+                if (error) {
+                  console.error('Error launching installer:', error);
+                  dialog.showMessageBox({
+                    type: 'error',
+                    title: 'Installation Failed',
+                    message: 'Failed to launch installer',
+                    detail: `${error}\n\nYou can manually run the installer at:\n${installerPath}`,
+                    buttons: ['OK']
+                  });
+                } else {
+                  console.log('Installer launched successfully via shell.openPath');
+                  
+                  // Quit the app after launching installer
+                  setTimeout(() => {
+                    app.quit();
+                  }, 1000);
+                }
+              }).catch((error) => {
+                console.error('Exception launching installer:', error);
+                dialog.showMessageBox({
+                  type: 'error',
+                  title: 'Installation Failed',
+                  message: 'Failed to launch installer',
+                  detail: `${error}\n\nYou can manually run the installer at:\n${installerPath}`,
+                  buttons: ['OK']
+                });
+              });
+            }
+          }, 500); // Small delay to ensure file is completely written
         });
       });
     }).on('error', (err) => {
