@@ -1,0 +1,26 @@
+END USER LICENSE AGREEMENT (EULA)
+PURE PRESENTER
+
+Copyright (c) 2025 Songnam Saraphai. All rights reserved.
+
+This software is provided for use in church presentations and worship services.
+
+GRANT OF LICENSE:
+This EULA grants you the following rights:
+- Installation and use of the software on multiple computers
+- Making copies for backup and archival purposes
+- Use for religious, educational, and non-commercial purposes
+
+RESTRICTIONS:
+You may not:
+- Reverse engineer, decompile, or disassemble the software
+- Rent, lease, or lend the software
+- Remove or alter any copyright notices
+
+DISCLAIMER OF WARRANTY:
+This software is provided "AS IS" without warranty of any kind, either expressed or implied, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose.
+
+LIMITATION OF LIABILITY:
+In no event shall Songnam Saraphai be liable for any damages whatsoever (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or any other pecuniary loss) arising out of the use of or inability to use this software.
+
+By installing this software, you agree to the terms of this license agreement.

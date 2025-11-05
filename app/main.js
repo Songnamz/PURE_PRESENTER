@@ -7,14 +7,19 @@ const license = require('./license');
 
 let projectorWindow, controlWindow, listWindow, activationWindow;
 let windowTitleSuffix = '- BY SONGNAM SARAPHAI'; // Global title suffix for all windows
+
+// Resource directories (read-only, bundled with app)
 const SONG_DIR = path.join(__dirname, '../Hymns/Thai-English');
 const BACKGROUNDS_DIR = path.join(__dirname, '../backgrounds');
 const ICON_PATH = path.join(__dirname, '../assets/PURE PRESENTER.ico');
-const SERVICE_SLIDES_FILE = path.join(__dirname, '../service-slides.json');
-const PRESENTATIONS_DIR = path.join(__dirname, '../Presentations');
-const AUDIO_DIR = path.join(__dirname, '../Audio');
-const VIDEO_DIR = path.join(__dirname, '../Video');
-const IMAGES_DIR = path.join(__dirname, '../Images');
+
+// User data directories (writable, in user's AppData folder for portable compatibility)
+const USER_DATA_DIR = app.getPath('userData');
+const SERVICE_SLIDES_FILE = path.join(USER_DATA_DIR, 'service-slides.json');
+const PRESENTATIONS_DIR = path.join(USER_DATA_DIR, 'Presentations');
+const AUDIO_DIR = path.join(USER_DATA_DIR, 'Audio');
+const VIDEO_DIR = path.join(USER_DATA_DIR, 'Video');
+const IMAGES_DIR = path.join(USER_DATA_DIR, 'Images');
 
 function createProjectorWindow() {
   if (projectorWindow) return; // Don't create if already exists
@@ -213,9 +218,6 @@ ipcMain.handle('get-non-hymnal-songs', () => {
 // Get list of presentations
 ipcMain.handle('get-presentations', () => {
   try {
-    if (!fs.existsSync(PRESENTATIONS_DIR)) {
-      fs.mkdirSync(PRESENTATIONS_DIR, { recursive: true });
-    }
     // Get all folders in Presentations directory
     return fs.readdirSync(PRESENTATIONS_DIR).filter(f => {
       const fullPath = path.join(PRESENTATIONS_DIR, f);
@@ -407,11 +409,6 @@ try {
 
 // ===== MP3 Audio Handlers =====
 
-// Ensure audio directory exists
-if (!fs.existsSync(AUDIO_DIR)) {
-  fs.mkdirSync(AUDIO_DIR, { recursive: true });
-}
-
 // Get list of audio files
 ipcMain.handle('get-audio-files', () => {
   try {
@@ -483,11 +480,6 @@ ipcMain.handle('delete-audio-file', async (event, fileName) => {
 });
 
 // ===== Video Handlers =====
-
-// Ensure video directory exists
-if (!fs.existsSync(VIDEO_DIR)) {
-  fs.mkdirSync(VIDEO_DIR, { recursive: true });
-}
 
 // Get list of video files
 ipcMain.handle('get-video-files', () => {
@@ -566,11 +558,6 @@ ipcMain.handle('delete-video-file', async (event, fileName) => {
 });
 
 // ===== Images Handlers =====
-
-// Ensure images directory exists
-if (!fs.existsSync(IMAGES_DIR)) {
-  fs.mkdirSync(IMAGES_DIR, { recursive: true });
-}
 
 // Get list of image files
 ipcMain.handle('get-images', () => {
@@ -1465,7 +1452,25 @@ ipcMain.on('set-font', (event, fontFamily) => {
   console.log('==============================');
 });
 
+// Ensure all user data directories exist (for portable .exe compatibility)
+function ensureUserDirectories() {
+  const userDirs = [PRESENTATIONS_DIR, AUDIO_DIR, VIDEO_DIR, IMAGES_DIR];
+  userDirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      try {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log('Created user directory:', dir);
+      } catch (err) {
+        console.error('Failed to create directory:', dir, err);
+      }
+    }
+  });
+}
+
 app.whenReady().then(() => {
+  // Initialize user directories before anything else
+  ensureUserDirectories();
+  
   require('electron-reload')(__dirname);
   
   // Create custom menu

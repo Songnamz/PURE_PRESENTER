@@ -7,7 +7,9 @@
     "start": "electron app/main.js",
     "build": "electron-builder",
     "build:win": "electron-builder --win",
-  "package": "electron-packager . \"PURE PRESENTER\" --platform=win32 --arch=x64 --out=dist --overwrite --icon=\"assets/PURE PRESENTER.ico\"",
+    "build:installer": "electron-builder --win nsis",
+    "build:portable": "electron-builder --win portable",
+    "package": "electron-packager . \"PURE PRESENTER\" --platform=win32 --arch=x64 --out=dist --overwrite --icon=\"assets/PURE PRESENTER.ico\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -26,18 +28,30 @@
           ]
         }
       ],
-  "icon": "assets/PURE PRESENTER.ico",
+      "icon": "assets/PURE PRESENTER.ico",
       "verifyUpdateCodeSignature": false
+    },
+    "portable": {
+      "artifactName": "PURE-PRESENTER-${version}-portable.exe",
+      "unicode": false
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
+      "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "PURE PRESENTER",
-  "installerIcon": "assets/PURE PRESENTER.ico",
-  "uninstallerIcon": "assets/PURE PRESENTER.ico",
-  "installerHeaderIcon": "assets/PURE PRESENTER.ico"
+      "installerIcon": "assets/PURE PRESENTER.ico",
+      "uninstallerIcon": "assets/PURE PRESENTER.ico",
+      "artifactName": "PURE-PRESENTER-Setup-${version}.exe",
+      "deleteAppDataOnUninstall": false,
+      "perMachine": true,
+      "allowElevation": true,
+      "runAfterFinish": true,
+      "menuCategory": true,
+      "license": "LICENSE.txt",
+      "include": "build/installer.nsh",
+      "guid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
     },
     "files": [
       "**/*",
