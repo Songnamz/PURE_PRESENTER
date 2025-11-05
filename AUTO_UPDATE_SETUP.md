@@ -63,6 +63,7 @@ When you're ready to publish a new version:
    - Click "Download & Install"
    - Installer downloads and launches
    - App closes and new version installs
+   - **Your Audio/Video/Images/Presentations are preserved** (stored in AppData)
 
 ### Option 3: View on GitHub
 - Click "View on GitHub" button
@@ -84,6 +85,25 @@ Examples:
 **Important:**
 - GitHub tag must be: `v1.0.1` (with 'v' prefix)
 - package.json version: `1.0.1` (no 'v' prefix)
+
+---
+
+## User Data Protection During Updates
+
+### What Gets Updated:
+✅ Application files (Program Files folder)
+✅ Electron framework
+✅ App resources (Hymns, default backgrounds)
+
+### What Stays Safe (Never Deleted):
+✅ **Audio files** - `C:\Users\[username]\AppData\Roaming\PURE PRESENTER\Audio\`
+✅ **Video files** - `C:\Users\[username]\AppData\Roaming\PURE PRESENTER\Video\`
+✅ **Images** - `C:\Users\[username]\AppData\Roaming\PURE PRESENTER\Images\`
+✅ **Presentations** - `C:\Users\[username]\AppData\Roaming\PURE PRESENTER\Presentations\`
+✅ **Service slides** - `C:\Users\[username]\AppData\Roaming\PURE PRESENTER\service-slides.json`
+✅ **License data** - License remains valid after update
+
+**Users can update without fear of losing their content!**
 
 ---
 

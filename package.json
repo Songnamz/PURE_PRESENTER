@@ -63,10 +63,24 @@
       "differentialPackage": false
     },
     "files": [
-      "**/*",
+      "app/**/*",
+      "Audio/**/*",
+      "Video/**/*",
+      "Images/**/*",
+      "Presentations/**/*",
+      "Hymns/**/*",
+      "backgrounds/**/*",
+      "assets/**/*",
+      "main.js",
+      "*.js",
+      "*.json",
+      "LICENSE.txt",
       "!dist",
       "!.git",
-      "!node_modules/electron-builder"
+      "!.github",
+      "!node_modules/electron-builder",
+      "!build-*.ps1",
+      "!*.md"
     ],
     "directories": {
       "output": "dist",

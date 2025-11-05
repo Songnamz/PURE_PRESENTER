@@ -36,6 +36,29 @@ class AutoUpdater {
         res.on('end', () => {
           try {
             const release = JSON.parse(data);
+            
+            // Check if there's a valid release
+            if (!release || !release.tag_name) {
+              console.log('No releases found on GitHub yet.');
+              
+              if (!silent) {
+                dialog.showMessageBox({
+                  type: 'info',
+                  title: 'No Updates Available',
+                  message: 'You are running the latest version!',
+                  detail: `Current version: ${this.currentVersion}\n\nNo releases have been published on GitHub yet.`,
+                  buttons: ['OK']
+                });
+              }
+              
+              resolve({
+                available: false,
+                version: this.currentVersion,
+                noReleases: true
+              });
+              return;
+            }
+            
             this.latestVersion = release.tag_name.replace('v', '');
             this.releaseNotes = release.body || 'No release notes available.';
 
