@@ -1,6 +1,6 @@
 {
   "name": "churchhymnalapp",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Pure Presenter - Presentation App",
   "main": "main.js",
   "scripts": {

@@ -1678,15 +1678,21 @@ Phone: 061-580-2547`,
           click: () => {
             dialog.showMessageBox({
               type: 'info',
-              title: 'PURE PRESENTER - Documentation',
-              message: 'How to Use PURE PRESENTER (PROJECT LIST, CONTROL & DISPLAY2)',
+              title: 'PURE PRESENTER - Complete Documentation',
+              message: 'How to Use PURE PRESENTER (v1.0.3)',
               detail: `OVERVIEW:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-PURE PRESENTER is a multi-window presentation tool specially tailored for worship services. The three main windows are:
-• Project List (left) — pick hymns, presentations, and service slides
-• Control & Preview (center) — preview slides, open the Visual Editor, and control navigation
-• Display2 (projector) — full-screen output for the second monitor or projector
+PURE PRESENTER is a professional multi-window presentation tool specially designed for worship services and religious gatherings. The three main windows are:
+
+• Project List (left) — Browse and select hymns, presentations, and service slides
+• Control & Preview (center) — Preview slides, access Visual Editor, control navigation
+• Display2 (projector) — Full-screen output for second monitor or projector
+
+VERSION HISTORY:
+• v1.0.3 — Fixed auto-update installation error (current version)
+• v1.0.2 — Fixed Windows icon display in Search and taskbar
+• v1.0.1 — Initial stable release with all core features
 
 KEY FEATURES:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1694,27 +1700,36 @@ KEY FEATURES:
 1) HYMN LIBRARIES
 • Built-in folders: Service, Thai, Thai-English, English, Non-Hymnal
 • Click any hymn to load its verses as slides
-• Search boxes help locate hymns quickly
-• Resume from last position: When switching between hymns and service slides, the app remembers your position and resumes where you left off
+• Fast search boxes to locate hymns quickly
+• Resume from last position: App remembers your position when switching between content
+• Hundreds of hymns pre-loaded and ready to use
+• Support for custom hymns in Non-Hymnal folder
 
 2) SERVICE SLIDES (CUSTOM VISUAL SLIDES)
-• Create, edit, reorder, and delete service slides
-• Visual Editor supports:
-  - Text elements with an inner editable area (WYSIWYG)
+• Create, edit, reorder, and delete custom service slides
+• Professional Visual Editor with WYSIWYG editing
+• Advanced features:
+  - Text elements with inner editable area
   - 8 resizer handles (corners + sides) for manual resizing
-  - Pixel-accurate dragging with immediate placement upon adding text
-  - Grid overlay with snap-to-grid (grid step adjustable; default 20px)
-  - Pointer-aware live snapping so the cursor stays anchored while snapping
-  - Auto-fit text boxes (like PowerPoint) which automatically size to content; manual resize disables auto-fit
-  - Undo / Redo with state restore that rebuilds resizer handles and maintains editor state
-  - EXACT positioning match between editor and projector (no padding differences)
+  - Pixel-accurate dragging with immediate placement
+  - Grid overlay with adjustable snap-to-grid (default: 20px)
+  - Pointer-aware live snapping (cursor stays anchored)
+  - Auto-fit text boxes (like PowerPoint) - auto-size to content
+  - Undo/Redo with full state restore
+  - EXACT positioning match between editor and projector
+  - Drag to reorder slides in service list
 
 3) PROJECTOR (DISPLAY2) BEHAVIOR
-• Automatically opens on first slide/song display (uses the second monitor if available)
-• Respects saved width/height and font sizes so text wrapping on Display2 matches the editor
-• Supports image slides (e.g., imported PowerPoint slides exported as PNG)
-• Font size controls: Increase/Decrease font size for hymnal slides
-• Toggle projector visibility (Alt+X to open/close, Alt+U to show/hide)
+• Automatically opens on first slide/song display
+• Intelligent display detection: uses second monitor if available
+• Respects saved dimensions and font sizes for consistent text wrapping
+• Supports multiple content types:
+  - Text slides (hymns, service slides)
+  - Image slides (PowerPoint exports)
+  - Video playback
+  - Single images
+• Font size controls for hymnal slides
+• Toggle visibility: Alt+X (open/close), Alt+U (show/hide)
 
 4) KEYBOARD SHORTCUTS & WIRELESS CLICKER SUPPORT
 Navigation (Next/Previous slide):
@@ -1722,72 +1737,174 @@ Navigation (Next/Previous slide):
 • Arrow Left, Arrow Up, PageUp — Previous slide
 • N key — Next slide
 • P key — Previous slide
-• Fully compatible with wireless presentation clickers (both horizontal and vertical arrow types)
+• ✅ Fully compatible with wireless presentation clickers
+• ✅ Works with both horizontal and vertical arrow clicker types
 
-Font Size Control:
+Font Size Control (Hymnal slides only):
 • Plus (+) or Equals (=) — Increase font size
 • Minus (-) or Underscore (_) — Decrease font size
-• Ctrl+0 — Reset font size
+• Ctrl+0 — Reset font size to default
 
 Projector Control:
-• Alt+X — Toggle projector (open/close)
+• Alt+X — Toggle projector window (open/close)
 • Alt+U — Toggle projector visibility (show/hide)
 
+Application Controls:
+• F5 — Refresh all windows
+• CmdOrCtrl+Shift+I — Toggle Developer Tools
+• CmdOrCtrl++ — Zoom in
+• CmdOrCtrl+- — Zoom out
+• CmdOrCtrl+0 — Reset zoom
+
 5) POWERPOINT IMPORT
-• Import .pptx files; slides are exported as images and stored under Presentations
-• Imported presentations appear in the Presentations list and can be displayed or deleted
-• Supports slide navigation with keyboard shortcuts
+• Import .pptx and .ppt files directly
+• Automatic slide-by-slide export as high-quality PNG images
+• Requires Microsoft PowerPoint installed on your computer
+• Imported presentations stored in Presentations folder
+• Navigate imported presentations with keyboard shortcuts
+• Delete presentations when no longer needed
 
 6) MEDIA MANAGEMENT
-• Import and manage Audio and Video files (copy into the app's Audio/Video folders)
-• Import image files for backgrounds and slide content
-• Background management: Separate backgrounds for hymnal slides and service slides
-• Images folder: Organize and manage image resources
 
-7) BACKGROUND SELECTION
+AUDIO FILES:
+• Supported formats: MP3, WAV, M4A, OGG
+• Import single or multiple audio files at once
+• Play audio during services
+• Delete audio files from library
+
+VIDEO FILES:
+• Supported formats: MP4, MOV, MKV, AVI, WebM, FLV, WMV, M4V, MPG, MPEG, 3GP
+• Import single or multiple videos
+• Full playback controls (play, pause, stop, restart)
+• Display videos on projector screen
+• Delete videos when done
+
+IMAGE FILES:
+• Supported formats: JPG, JPEG, PNG, GIF, BMP, WebP, SVG, TIFF, TIF, ICO, HEIC, HEIF
+• Import multiple images at once
+• Use images in service slides or standalone display
+• Zoom controls for image display on projector
+• Delete images from library
+
+7) BACKGROUND MANAGEMENT
 • Separate background controls for Hymnal Slides and Service Slides
 • Apply different backgrounds to different content types
-• Backgrounds stored in the backgrounds/ folder
-• Preview backgrounds in the visual editor
+• All backgrounds stored in backgrounds/ folder
+• Preview backgrounds in Visual Editor
+• Easy switching between backgrounds during service
+• Supports JPG, PNG, GIF formats
 
-8) LICENSE & SUBSCRIPTION
-• License activation / deactivation via the built-in activation window
-• Subscription details (customer name, key, status, expiry) are shown under Subscription → View License Information
-• License expiration warnings
-• Blacklist support for revoked licenses
+8) LICENSE & SUBSCRIPTION SYSTEM
+• Secure license activation via built-in activation window
+• View full subscription details: Subscription → View License Information
+• License information includes:
+  - Customer name
+  - License key
+  - Activation date
+  - Expiration date
+  - Days remaining
+  - Current status (Active/Expiring Soon)
+• License expiration warnings (shows alert when expiring soon)
+• Deactivate license: Subscription → Deactivate License
+• Blacklist support for revoked/invalid licenses
+• License stored securely in user data folder
 
-9) AUTO-UPDATE
-• Automatic update checking on app startup (checks GitHub releases)
-• Manual update check: Help → Check for Updates
-• One-click download and installation of new versions
-• Release notes displayed before updating
-• No need to manually download and reinstall
+9) AUTO-UPDATE SYSTEM (Fixed in v1.0.3!)
+• ✅ Automatic update checking on app startup (5 seconds after launch)
+• ✅ Manual update check: Help → Check for Updates
+• ✅ One-click download and installation (now working properly!)
+• ✅ Release notes displayed before updating
+• ✅ Seamless update process - app closes and installer launches automatically
+• ✅ No need to manually download from GitHub
+• ✅ Always stay up-to-date with latest features and bug fixes
+• Checks GitHub releases for new versions
+• Downloads installer to temp folder
+• Fallback error messages show installer location if needed
 
-10) USABILITY & NAVIGATION
-• Click thumbnails in Control to jump to any slide
+10) WINDOWS INTEGRATION (Fixed in v1.0.2!)
+• ✅ Proper icon display in Windows Search
+• ✅ Correct icon in taskbar and Start Menu
+• ✅ Desktop and Start Menu shortcuts with custom icon
+• ✅ App User Model ID for better Windows identification
+• ✅ Legal trademarks and metadata in executable
+• No more default Electron icon!
+
+11) USABILITY & NAVIGATION
+• Click thumbnails in Control window to jump to any slide
 • Previous/Next buttons for sequential navigation
-• Folders can be expanded/collapsed; drag to reorder service slides
-• Session memory: Returns to your last slide position when switching between content
-• No slide skipping: Fixed issue where keyboard navigation was skipping slides
+• Folders can be expanded/collapsed in Project List
+• Drag to reorder service slides
+• Session memory: Returns to last slide position when switching content
+• No slide skipping: Smooth keyboard navigation
+• Search functionality in all hymn folders
+• Quick access to all media types from Project List
 
-TIPS & NOTES:
+12) FILE ORGANIZATION
+The app uses TWO types of directories:
+
+READ-ONLY (Bundled with app):
+• Hymns/ — Pre-loaded hymn text files (Thai, English, Thai-English, Non-Hymnal)
+• backgrounds/ — Background images for slides
+• assets/ — Application icon and resources
+
+WRITABLE (User's AppData folder):
+• Presentations/ — Imported PowerPoint presentations (as PNG folders)
+• Audio/ — Imported audio files
+• Video/ — Imported video files
+• Images/ — Imported image files
+• service-slides.json — Your custom service slides
+
+This separation ensures the app works in both installed and portable modes.
+
+TIPS & BEST PRACTICES:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• The Visual Editor stores positions/sizes in relative percentages (center-anchored) so slides scale correctly across different displays.
-• Font sizes are saved in viewport units (vw) for consistent projector rendering.
-• Text placement in the editor now exactly matches Display2 output (no padding offset).
-• Wireless clickers work with both arrow up/down and left/right configurations.
-• Text boxes are immediately movable after creation (no need to save first).
-• Font size adjustments (+/-) work only on hymnal slides, not on service/visual slides.
-• Position memory persists during your session but resets when you restart the app.
+• Visual Editor stores positions/sizes in relative percentages for proper scaling across different displays
+• Font sizes saved in viewport units (vw) for consistent projector rendering
+• Text placement in editor exactly matches Display2 output
+• Wireless clickers work with both arrow up/down and left/right configurations
+• Text boxes are immediately movable after creation
+• Font size adjustments (+/-) work only on hymnal slides, not service/visual slides
+• Position memory persists during session but resets on app restart
+• Keep app updated using Help → Check for Updates for latest fixes
+• Use dual monitors for best experience (one for control, one for projection)
+• Test presentations before services to ensure smooth operation
+
+TROUBLESHOOTING:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• If Display2 doesn't open: Use Alt+X to toggle projector window
+• If updates fail: Download installer manually from GitHub releases
+• If PowerPoint import fails: Ensure Microsoft PowerPoint is installed
+• If license activation fails: Check license key and internet connection
+• If fonts look different: Use system fonts available on all computers
+• If app is slow: Close unused windows, restart application
+• For any issues: File → Relaunch Program to restart fresh
+
+SYSTEM REQUIREMENTS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Operating System: Windows 10/11 (64-bit)
+• RAM: 4GB minimum (8GB recommended)
+• Storage: 500MB free space
+• Display: Dual monitor setup recommended for presentations
+• Internet: Required for license activation and updates
+• Optional: Microsoft PowerPoint (for .pptx import feature)
 
 SUPPORT & CONTACT:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-For license support or feature requests, contact:
-Name: Songnam Saraphai
+For license support, technical assistance, or feature requests:
+
+Developer: Songnam Saraphai
 Email: songnam@apiu.edu
 Phone: 061-580-2547
 
-This documentation summarizes the built-in features as of the current release. For further assistance, open the Visual Editor and test auto-fit, grid, and projector rendering with your presentation content.`,
+Response time: Usually within 24 hours
+Available for: License issues, bug reports, feature requests, training
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PURE PRESENTER v1.0.3 - Professional Worship Presentation Software
+Copyright © 2025 Songnam Saraphai. All rights reserved.
+
+This documentation covers all features available in the current release. For the latest updates and release notes, visit Help → Check for Updates.`,
               buttons: ['OK']
             });
           }
