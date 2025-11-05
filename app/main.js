@@ -4,9 +4,11 @@ const fs = require('fs');
 const officeParser = require('officeparser');
 const { exec } = require('child_process');
 const license = require('./license');
+const AutoUpdater = require('./auto-updater');
 
 let projectorWindow, controlWindow, listWindow, activationWindow;
 let windowTitleSuffix = '- BY SONGNAM SARAPHAI'; // Global title suffix for all windows
+let autoUpdater; // Auto-updater instance
 
 // Resource directories (read-only, bundled with app)
 const SONG_DIR = path.join(__dirname, '../Hymns/Thai-English');
@@ -111,6 +113,11 @@ function checkLicenseAndStart() {
     }
     
     createWindows();
+    
+    // Check for updates on startup (after 5 seconds)
+    if (autoUpdater) {
+      autoUpdater.checkOnStartup();
+    }
     
     // Show warning if expiring soon
     if (licenseStatus.status === 'EXPIRING_SOON') {
@@ -1471,6 +1478,9 @@ app.whenReady().then(() => {
   // Initialize user directories before anything else
   ensureUserDirectories();
   
+  // Initialize auto-updater
+  autoUpdater = new AutoUpdater();
+  
   require('electron-reload')(__dirname);
   
   // Create custom menu
@@ -1741,7 +1751,14 @@ Projector Control:
 • License expiration warnings
 • Blacklist support for revoked licenses
 
-9) USABILITY & NAVIGATION
+9) AUTO-UPDATE
+• Automatic update checking on app startup (checks GitHub releases)
+• Manual update check: Help → Check for Updates
+• One-click download and installation of new versions
+• Release notes displayed before updating
+• No need to manually download and reinstall
+
+10) USABILITY & NAVIGATION
 • Click thumbnails in Control to jump to any slide
 • Previous/Next buttons for sequential navigation
 • Folders can be expanded/collapsed; drag to reorder service slides
@@ -1768,6 +1785,21 @@ Phone: 061-580-2547
 This documentation summarizes the built-in features as of the current release. For further assistance, open the Visual Editor and test auto-fit, grid, and projector rendering with your presentation content.`,
               buttons: ['OK']
             });
+          }
+        },
+        {
+          label: 'Check for Updates',
+          click: () => {
+            if (autoUpdater) {
+              autoUpdater.checkForUpdates(false);
+            } else {
+              dialog.showMessageBox({
+                type: 'error',
+                title: 'Update Check Failed',
+                message: 'Auto-updater not initialized',
+                buttons: ['OK']
+              });
+            }
           }
         },
         {

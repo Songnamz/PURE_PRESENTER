@@ -19,6 +19,8 @@
     "appId": "com.churchhymnal.app",
     "productName": "PURE PRESENTER",
     "asar": true,
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "compression": "maximum",
     "win": {
       "target": [
         {
@@ -29,7 +31,9 @@
         }
       ],
       "icon": "assets/PURE PRESENTER.ico",
-      "verifyUpdateCodeSignature": false
+      "verifyUpdateCodeSignature": false,
+      "requestedExecutionLevel": "requireAdministrator",
+      "signAndEditExecutable": false
     },
     "portable": {
       "artifactName": "PURE-PRESENTER-${version}-portable.exe",
@@ -51,7 +55,12 @@
       "menuCategory": true,
       "license": "LICENSE.txt",
       "include": "build/installer.nsh",
-      "guid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      "guid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "warningsAsErrors": false,
+      "displayLanguageSelector": false,
+      "installerLanguages": ["en_US"],
+      "unicode": true,
+      "differentialPackage": false
     },
     "files": [
       "**/*",
