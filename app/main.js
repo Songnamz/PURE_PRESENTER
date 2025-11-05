@@ -1672,49 +1672,86 @@ KEY FEATURES:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 1) HYMN LIBRARIES
-• Built-in folders: Service, Thai, Thai-English, English
+• Built-in folders: Service, Thai, Thai-English, English, Non-Hymnal
 • Click any hymn to load its verses as slides
 • Search boxes help locate hymns quickly
+• Resume from last position: When switching between hymns and service slides, the app remembers your position and resumes where you left off
 
 2) SERVICE SLIDES (CUSTOM VISUAL SLIDES)
 • Create, edit, reorder, and delete service slides
 • Visual Editor supports:
   - Text elements with an inner editable area (WYSIWYG)
   - 8 resizer handles (corners + sides) for manual resizing
-  - Pixel-accurate dragging while storing sizes/positions as percentages for portability
-  - Grid overlay with snap-to-grid (grid step adjustable in code; default 20px)
+  - Pixel-accurate dragging with immediate placement upon adding text
+  - Grid overlay with snap-to-grid (grid step adjustable; default 20px)
   - Pointer-aware live snapping so the cursor stays anchored while snapping
   - Auto-fit text boxes (like PowerPoint) which automatically size to content; manual resize disables auto-fit
   - Undo / Redo with state restore that rebuilds resizer handles and maintains editor state
+  - EXACT positioning match between editor and projector (no padding differences)
 
 3) PROJECTOR (DISPLAY2) BEHAVIOR
 • Automatically opens on first slide/song display (uses the second monitor if available)
 • Respects saved width/height and font sizes so text wrapping on Display2 matches the editor
 • Supports image slides (e.g., imported PowerPoint slides exported as PNG)
+• Font size controls: Increase/Decrease font size for hymnal slides
+• Toggle projector visibility (Alt+X to open/close, Alt+U to show/hide)
 
-4) POWERPOINT IMPORT
+4) KEYBOARD SHORTCUTS & WIRELESS CLICKER SUPPORT
+Navigation (Next/Previous slide):
+• Arrow Right, Arrow Down, Spacebar, PageDown, Enter — Next slide
+• Arrow Left, Arrow Up, PageUp — Previous slide
+• N key — Next slide
+• P key — Previous slide
+• Fully compatible with wireless presentation clickers (both horizontal and vertical arrow types)
+
+Font Size Control:
+• Plus (+) or Equals (=) — Increase font size
+• Minus (-) or Underscore (_) — Decrease font size
+• Ctrl+0 — Reset font size
+
+Projector Control:
+• Alt+X — Toggle projector (open/close)
+• Alt+U — Toggle projector visibility (show/hide)
+
+5) POWERPOINT IMPORT
 • Import .pptx files; slides are exported as images and stored under Presentations
 • Imported presentations appear in the Presentations list and can be displayed or deleted
+• Supports slide navigation with keyboard shortcuts
 
-5) MEDIA MANAGEMENT
+6) MEDIA MANAGEMENT
 • Import and manage Audio and Video files (copy into the app's Audio/Video folders)
 • Import image files for backgrounds and slide content
+• Background management: Separate backgrounds for hymnal slides and service slides
+• Images folder: Organize and manage image resources
 
-6) LICENSE & SUBSCRIPTION
+7) BACKGROUND SELECTION
+• Separate background controls for Hymnal Slides and Service Slides
+• Apply different backgrounds to different content types
+• Backgrounds stored in the backgrounds/ folder
+• Preview backgrounds in the visual editor
+
+8) LICENSE & SUBSCRIPTION
 • License activation / deactivation via the built-in activation window
 • Subscription details (customer name, key, status, expiry) are shown under Subscription → View License Information
+• License expiration warnings
+• Blacklist support for revoked licenses
 
-7) USABILITY & NAVIGATION
+9) USABILITY & NAVIGATION
 • Click thumbnails in Control to jump to any slide
 • Previous/Next buttons for sequential navigation
 • Folders can be expanded/collapsed; drag to reorder service slides
+• Session memory: Returns to your last slide position when switching between content
+• No slide skipping: Fixed issue where keyboard navigation was skipping slides
 
 TIPS & NOTES:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • The Visual Editor stores positions/sizes in relative percentages (center-anchored) so slides scale correctly across different displays.
 • Font sizes are saved in viewport units (vw) for consistent projector rendering.
-• If projector rendering appears different, check selected background and font settings in the Control window.
-• To reproduce exact editor wrapping on Display2, avoid changing the app window sizes while editing.
+• Text placement in the editor now exactly matches Display2 output (no padding offset).
+• Wireless clickers work with both arrow up/down and left/right configurations.
+• Text boxes are immediately movable after creation (no need to save first).
+• Font size adjustments (+/-) work only on hymnal slides, not on service/visual slides.
+• Position memory persists during your session but resets when you restart the app.
 
 SUPPORT & CONTACT:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
