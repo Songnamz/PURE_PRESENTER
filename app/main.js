@@ -153,7 +153,7 @@ function createWindows() {
 
   // Control/Preview window - positioned right next to Project List window
   controlWindow = new BrowserWindow({
-    width: 1140,
+    width: 1525,
     height: 1080,
     x: 395,  // Just 5 pixels away from the Project List window (400 width + 5 gap)
     y: 0,
