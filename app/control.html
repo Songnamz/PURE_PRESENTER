@@ -467,14 +467,14 @@
     </div>
 
     <div id="font-controls" class="btn-group" style="display:none;">
-      <button onclick="decreaseFontSize()" class="btn btn-warning" title="Arrow Down">
-        🔤➖ Decrease Font Size (↓)
+      <button onclick="decreaseFontSize()" class="btn btn-warning" title="Minus Key">
+        🔤➖ Decrease Font Size (-)
       </button>
       <button onclick="resetFontSize()" class="btn btn-info" title="Ctrl+0">
         🔤↻ Reset Font Size (Ctrl+0)
       </button>
-      <button onclick="increaseFontSize()" class="btn btn-warning" title="Arrow Up">
-        🔤➕ Increase Font Size (↑)
+      <button onclick="increaseFontSize()" class="btn btn-warning" title="Plus Key">
+        🔤➕ Increase Font Size (+)
       </button>
     </div>
 
@@ -1183,13 +1183,13 @@
 
       // Keyboard shortcuts for font size control
       document.addEventListener('keydown', (event) => {
-        // Arrow Up = Increase font size
-        if (event.key === 'ArrowUp') {
+        // + key = Increase font size
+        if (event.key === '+' || event.key === '=') {
           event.preventDefault();
           increaseFontSize();
         }
-        // Arrow Down = Decrease font size
-        else if (event.key === 'ArrowDown') {
+        // - key = Decrease font size
+        else if (event.key === '-' || event.key === '_') {
           event.preventDefault();
           decreaseFontSize();
         }
@@ -1260,31 +1260,10 @@
         }
       }
 
-      // Keyboard shortcuts
+      // Keyboard shortcuts for Alt+X and Alt+U only
+      // Note: Arrow keys and spacebar are handled by the window-level listener below
+      // to avoid double-triggering with wireless clickers
       document.addEventListener('keydown', (e) => {
-        // Check if visual editor is open
-        const editorModal = document.getElementById('visualEditorModal');
-        const isEditorOpen = editorModal && editorModal.style.display === 'block';
-        
-        // If visual editor is open and user is editing text (including inner .text-content), allow normal spacebar behavior
-        if (isEditorOpen) {
-          const activeElement = document.activeElement;
-          try {
-            if (activeElement && activeElement.closest && activeElement.closest('.text-element')) {
-              // User is editing text in visual editor, allow spacebar
-              return;
-            }
-          } catch (err) {}
-        }
-        
-        if (e.key === 'ArrowRight' || e.key === ' ') {
-          e.preventDefault();
-          nextSlide();
-        }
-        if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          prevSlide();
-        }
         if (e.altKey && e.key.toLowerCase() === 'x') {
           e.preventDefault();
           toggleProjector();
@@ -1311,8 +1290,8 @@
         } catch (err) {}
 
         // Map of keys that should move forward/backwards
-        const forwardKeys = new Set(['ArrowRight', ' ', 'PageDown', 'MediaTrackNext', 'Enter']);
-        const backwardKeys = new Set(['ArrowLeft', 'PageUp', 'MediaTrackPrevious']);
+        const forwardKeys = new Set(['ArrowRight', 'ArrowDown', ' ', 'PageDown', 'MediaTrackNext', 'Enter']);
+        const backwardKeys = new Set(['ArrowLeft', 'ArrowUp', 'PageUp', 'MediaTrackPrevious']);
 
         const keyName = e.key || e.code || '';
 
