@@ -2,7 +2,7 @@ const { app, dialog, shell } = require('electron');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const { execFile } = require('child_process');
+const { spawn } = require('child_process');
 
 class AutoUpdater {
   constructor() {
@@ -210,39 +210,52 @@ class AutoUpdater {
       response.pipe(file);
 
       file.on('finish', () => {
-        file.close();
-        console.log('Download complete!');
+        file.close(() => {
+          console.log('Download complete!');
 
-        // Launch installer
-        const installResponse = dialog.showMessageBoxSync({
-          type: 'info',
-          title: 'Update Ready',
-          message: 'Update downloaded successfully!',
-          detail: 'The installer will now launch. PURE PRESENTER will close automatically.',
-          buttons: ['Install Now', 'Cancel'],
-          defaultId: 0
-        });
+          // Launch installer
+          const installResponse = dialog.showMessageBoxSync({
+            type: 'info',
+            title: 'Update Ready',
+            message: 'Update downloaded successfully!',
+            detail: 'The installer will now launch. PURE PRESENTER will close automatically.',
+            buttons: ['Install Now', 'Cancel'],
+            defaultId: 0
+          });
 
-        if (installResponse === 0) {
-          // Launch installer and quit app
-          execFile(installerPath, [], (error) => {
-            if (error) {
+          if (installResponse === 0) {
+            try {
+              // Launch installer with detached process to avoid EBUSY error
+              console.log('Launching installer:', installerPath);
+              
+              const installer = spawn(installerPath, [], {
+                detached: true,
+                stdio: 'ignore',
+                shell: false
+              });
+              
+              // Unref so parent can exit independently
+              installer.unref();
+              
+              console.log('Installer launched successfully');
+              
+              // Quit the app after launching installer
+              setTimeout(() => {
+                app.quit();
+              }, 500);
+              
+            } catch (error) {
               console.error('Error launching installer:', error);
               dialog.showMessageBox({
                 type: 'error',
                 title: 'Installation Failed',
                 message: 'Failed to launch installer',
-                detail: error.message,
+                detail: `${error.message}\n\nYou can manually run the installer at:\n${installerPath}`,
                 buttons: ['OK']
               });
             }
-          });
-
-          // Quit the app after launching installer
-          setTimeout(() => {
-            app.quit();
-          }, 1000);
-        }
+          }
+        });
       });
     }).on('error', (err) => {
       fs.unlink(installerPath, () => {}); // Delete incomplete file

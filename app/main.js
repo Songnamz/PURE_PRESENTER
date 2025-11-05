@@ -1478,6 +1478,11 @@ app.whenReady().then(() => {
   // Initialize user directories before anything else
   ensureUserDirectories();
   
+  // Set app user model ID for Windows (helps with taskbar icon)
+  if (process.platform === 'win32') {
+    app.setAppUserModelId('com.churchhymnal.app.PUREPRESENTER');
+  }
+  
   // Initialize auto-updater
   autoUpdater = new AutoUpdater();
   

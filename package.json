@@ -1,6 +1,6 @@
 {
   "name": "churchhymnalapp",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Pure Presenter - Presentation App",
   "main": "main.js",
   "scripts": {
@@ -33,10 +33,11 @@
       "icon": "assets/PURE PRESENTER.ico",
       "verifyUpdateCodeSignature": false,
       "requestedExecutionLevel": "requireAdministrator",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "legalTrademarks": "PURE PRESENTER by Songnam Saraphai"
     },
     "portable": {
-      "artifactName": "PURE-PRESENTER-${version}-portable.exe",
+      "artifactName": "PURE-PRESENTER-${version}.exe",
       "unicode": false
     },
     "nsis": {
@@ -62,6 +63,12 @@
       "unicode": true,
       "differentialPackage": false
     },
+    "extraResources": [
+      {
+        "from": "assets/PURE PRESENTER.ico",
+        "to": "PURE PRESENTER.ico"
+      }
+    ],
     "files": [
       "app/**/*",
       "Audio/**/*",
