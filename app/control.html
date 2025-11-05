@@ -306,7 +306,7 @@
         position: absolute;
         color: white;
         cursor: move;
-        padding: 10px;
+        padding: 0; /* No padding - match projector output exactly */
         border: 2px dashed transparent;
         user-select: none;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
@@ -314,6 +314,7 @@
         z-index: 10;
         text-align: center; /* Default center align */
         transform: translate(-50%, -50%); /* Position based on center */
+        box-sizing: border-box; /* Ensure borders don't affect positioning */
       }
       
       .text-element.editing {

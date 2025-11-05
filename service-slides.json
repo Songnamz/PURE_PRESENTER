@@ -437,5 +437,47 @@
     "position": "",
     "name": "Praise and Worship...",
     "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "inter-church",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Sermon",
+        "x": 49.8862,
+        "y": 34.2278,
+        "fontSize": 6.666666666666667,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 25.4172,
+        "height": 14.6957
+      },
+      {
+        "type": "text",
+        "text": "\"The Love of God\"",
+        "x": 49.8861,
+        "y": 51.588,
+        "fontSize": 4.375,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 42.196,
+        "height": 14.7553
+      },
+      {
+        "type": "text",
+        "text": "Yi Hong Wong",
+        "x": 49.8868,
+        "y": 70.0878,
+        "fontSize": 5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 34.1933,
+        "height": 14.7553
+      }
+    ],
+    "position": "",
+    "name": "Sermon...",
+    "title": ""
   }
 ]
