@@ -531,6 +531,9 @@
   let isServiceSlide = false; // Track if current slide is a service slide
   let imageDisplayedState = false; // Track whether current content on Display2 is an image
   let displayShowing = false; // whether Display2 is currently open
+      
+      // Track last position for each content (so we can resume where we left off)
+      let savedPositions = {}; // Key: song/service name, Value: last slide index
 
       // Load background images for all selectors
       async function loadBackgrounds() {
@@ -708,9 +711,25 @@
       // Listen for song loaded from list window
       ipcRenderer.on('song-loaded', (_, data) => {
         console.log('Song loaded:', data.name, 'Slides:', data.slides.length);
+        
+        // Save current position before switching
+        if (currentSongName && currentSlides.length > 0) {
+          savedPositions[currentSongName] = currentIndex;
+          console.log(`Saved position for "${currentSongName}": slide ${currentIndex + 1}`);
+        }
+        
         currentSlides = data.slides;
         currentSongName = data.name;
-        currentIndex = 0;
+        
+        // Restore saved position if available, otherwise start at 0
+        if (savedPositions[currentSongName] !== undefined && 
+            savedPositions[currentSongName] < currentSlides.length) {
+          currentIndex = savedPositions[currentSongName];
+          console.log(`Restored position for "${currentSongName}": slide ${currentIndex + 1}`);
+        } else {
+          currentIndex = 0;
+          console.log(`Starting at beginning for "${currentSongName}"`);
+        }
         
   // Detect if this is a service slide or visual slide
   isServiceSlide = data.name.startsWith('Service:') || 
