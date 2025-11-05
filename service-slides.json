@@ -375,5 +375,67 @@
     "position": "",
     "name": "Happy Sabbath...",
     "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "inter-church",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Welcome and Announcements",
+        "x": 49.8861,
+        "y": 40.6143,
+        "fontSize": 6.458333333333334,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 89.0688,
+        "height": 18.0753
+      },
+      {
+        "type": "text",
+        "text": "Songnam Saraphai",
+        "x": 49.8868,
+        "y": 62.7102,
+        "fontSize": 5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 43.4431,
+        "height": 14.7553
+      }
+    ],
+    "position": "",
+    "name": "Welcome and Announcements...",
+    "title": ""
+  },
+  {
+    "type": "visual",
+    "service": "inter-church",
+    "elements": [
+      {
+        "type": "text",
+        "text": "Praise and Worship",
+        "x": 49.8868,
+        "y": 40.5772,
+        "fontSize": 7.5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 65.4765,
+        "height": 20.473
+      },
+      {
+        "type": "text",
+        "text": "Praise Team",
+        "x": 49.8868,
+        "y": 62.7102,
+        "fontSize": 5,
+        "color": "rgb(255, 255, 255)",
+        "align": "center",
+        "width": 28.0614,
+        "height": 14.7553
+      }
+    ],
+    "position": "",
+    "name": "Praise and Worship...",
+    "title": ""
   }
 ]

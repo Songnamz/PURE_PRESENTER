@@ -1629,7 +1629,7 @@
         element.style.fontSize = '48px'; /* Initial px; will convert to vw on save */
         element.style.color = '#ffffff';
         element.style.textAlign = 'center'; /* Ensure center */
-        element.contentEditable = true;
+        // Do NOT set element.contentEditable = true on wrapper; only inner contentDiv is editable
         
         // Add event listeners
         element.addEventListener('mousedown', startDrag);
@@ -1648,10 +1648,9 @@
   editorElements.push({ id: element.id, x: 50, y: 50, fontSize: (48 / canvasW * 100), text: contentDiv.innerText, color: '#ffffff', align: 'center', width: undefined, height: undefined, autoFit: true });
         selectElement({ target: element });
         
-        selectElement({ target: element });
-        // Start in editing mode for new elements
+        // Start in editing mode for new elements so user can type immediately
         element.classList.add('editing');
-        element.focus(); // Focus for immediate editing
+        contentDiv.focus(); // Focus the inner contentDiv for immediate editing
       }
 
       // Select Element
