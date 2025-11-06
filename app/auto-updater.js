@@ -199,13 +199,8 @@ class AutoUpdater {
     console.log('Downloading update from:', this.downloadUrl);
     console.log('Saving to:', installerPath);
 
-    const file = fs.createWriteStream(installerPath);
-    let downloadStarted = false;
-
     const downloadFile = (url, redirectCount = 0) => {
       if (redirectCount > 5) {
-        file.close();
-        fs.unlink(installerPath, () => {});
         dialog.showMessageBox({
           type: 'error',
           title: 'Download Failed',
@@ -233,8 +228,6 @@ class AutoUpdater {
           console.log('Redirecting to:', redirectUrl);
           
           if (!redirectUrl) {
-            file.close();
-            fs.unlink(installerPath, () => {});
             dialog.showMessageBox({
               type: 'error',
               title: 'Download Failed',
@@ -244,6 +237,9 @@ class AutoUpdater {
             return;
           }
           
+          // Consume the response to prevent memory leak
+          response.resume();
+          
           // Follow redirect
           downloadFile(redirectUrl, redirectCount + 1);
           return;
@@ -251,8 +247,6 @@ class AutoUpdater {
 
         // Handle non-200 responses
         if (response.statusCode !== 200) {
-          file.close();
-          fs.unlink(installerPath, () => {});
           console.error('Download failed with status:', response.statusCode);
           dialog.showMessageBox({
             type: 'error',
@@ -265,13 +259,38 @@ class AutoUpdater {
         }
 
         console.log('Starting download...');
-        downloadStarted = true;
+        console.log('Content-Length:', response.headers['content-length'] || 'unknown');
+
+        // Create file stream for actual download
+        const file = fs.createWriteStream(installerPath);
+        let downloadedBytes = 0;
+        const totalBytes = parseInt(response.headers['content-length'] || '0', 10);
+
+        response.on('data', (chunk) => {
+          downloadedBytes += chunk.length;
+          if (totalBytes > 0) {
+            const percent = ((downloadedBytes / totalBytes) * 100).toFixed(1);
+            console.log(`Download progress: ${percent}% (${downloadedBytes}/${totalBytes} bytes)`);
+          }
+        });
 
         response.pipe(file);
 
+        file.on('error', (err) => {
+          console.error('File write error:', err);
+          fs.unlink(installerPath, () => {});
+          dialog.showMessageBox({
+            type: 'error',
+            title: 'Download Failed',
+            message: 'Error writing file',
+            detail: err.message,
+            buttons: ['OK']
+          });
+        });
+
         file.on('finish', () => {
           file.close(() => {
-            console.log('Download complete!');
+            console.log('Download complete! File closed.');
             console.log('File saved at:', installerPath);
 
             // Verify file exists and has size
@@ -298,8 +317,11 @@ class AutoUpdater {
                   detail: `File size: ${stats.size} bytes (too small)\n\nPlease download manually from:\nhttps://github.com/Songnamz/PURE_PRESENTER/releases/latest`,
                   buttons: ['OK']
                 });
+                fs.unlink(installerPath, () => {});
                 return;
               }
+
+              console.log('Download verification passed!');
 
               // Launch installer
               const installResponse = dialog.showMessageBoxSync({
@@ -344,17 +366,27 @@ class AutoUpdater {
                     buttons: ['OK']
                   });
                 });
+              } else {
+                console.log('User cancelled installation');
               }
             }, 500); // Small delay to ensure file is completely written
           });
         });
-      }).on('error', (err) => {
-        console.error('HTTPS request error:', err);
-        if (!downloadStarted) {
+
+        response.on('error', (err) => {
+          console.error('Response stream error:', err);
           file.close();
           fs.unlink(installerPath, () => {});
-        }
-        
+          dialog.showMessageBox({
+            type: 'error',
+            title: 'Download Failed',
+            message: 'Network error during download',
+            detail: err.message,
+            buttons: ['OK']
+          });
+        });
+      }).on('error', (err) => {
+        console.error('HTTPS request error:', err);
         dialog.showMessageBox({
           type: 'error',
           title: 'Download Failed',
