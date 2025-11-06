@@ -14,6 +14,9 @@ let autoUpdater; // Auto-updater instance
 const SONG_DIR = path.join(__dirname, '../Hymns/Thai-English');
 const BACKGROUNDS_DIR = path.join(__dirname, '../backgrounds');
 const ICON_PATH = path.join(__dirname, '../assets/PURE PRESENTER.ico');
+const BUNDLED_AUDIO_DIR = path.join(__dirname, '../Audio');
+const BUNDLED_VIDEO_DIR = path.join(__dirname, '../Video');
+const BUNDLED_IMAGES_DIR = path.join(__dirname, '../Images');
 
 // User data directories (writable, in user's AppData folder for portable compatibility)
 const USER_DATA_DIR = app.getPath('userData');
@@ -1461,14 +1464,52 @@ ipcMain.on('set-font', (event, fontFamily) => {
 
 // Ensure all user data directories exist (for portable .exe compatibility)
 function ensureUserDirectories() {
-  const userDirs = [PRESENTATIONS_DIR, AUDIO_DIR, VIDEO_DIR, IMAGES_DIR];
-  userDirs.forEach(dir => {
-    if (!fs.existsSync(dir)) {
+  const userDirs = [
+    { user: PRESENTATIONS_DIR, bundled: null },
+    { user: AUDIO_DIR, bundled: BUNDLED_AUDIO_DIR },
+    { user: VIDEO_DIR, bundled: BUNDLED_VIDEO_DIR },
+    { user: IMAGES_DIR, bundled: BUNDLED_IMAGES_DIR }
+  ];
+  
+  userDirs.forEach(({ user, bundled }) => {
+    // Create user directory if it doesn't exist
+    if (!fs.existsSync(user)) {
       try {
-        fs.mkdirSync(dir, { recursive: true });
-        console.log('Created user directory:', dir);
+        fs.mkdirSync(user, { recursive: true });
+        console.log('Created user directory:', user);
+        
+        // Copy default files from bundled directory if it exists
+        if (bundled && fs.existsSync(bundled)) {
+          try {
+            const files = fs.readdirSync(bundled).filter(f => 
+              !f.startsWith('.') && f !== 'README.txt' && f !== 'desktop.ini'
+            );
+            
+            let copiedCount = 0;
+            files.forEach(file => {
+              const srcPath = path.join(bundled, file);
+              const destPath = path.join(user, file);
+              
+              // Only copy files (not directories)
+              if (fs.statSync(srcPath).isFile()) {
+                try {
+                  fs.copyFileSync(srcPath, destPath);
+                  copiedCount++;
+                } catch (copyErr) {
+                  console.error(`Failed to copy ${file}:`, copyErr);
+                }
+              }
+            });
+            
+            if (copiedCount > 0) {
+              console.log(`Copied ${copiedCount} default file(s) from ${path.basename(bundled)} to user directory`);
+            }
+          } catch (copyErr) {
+            console.error('Error copying default files from', bundled, ':', copyErr);
+          }
+        }
       } catch (err) {
-        console.error('Failed to create directory:', dir, err);
+        console.error('Failed to create directory:', user, err);
       }
     }
   });
