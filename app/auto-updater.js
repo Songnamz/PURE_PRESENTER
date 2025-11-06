@@ -200,64 +200,142 @@ class AutoUpdater {
     console.log('Saving to:', installerPath);
 
     const file = fs.createWriteStream(installerPath);
+    let downloadStarted = false;
 
-    https.get(this.downloadUrl, {
-      headers: {
-        'User-Agent': 'PURE-PRESENTER'
+    const downloadFile = (url, redirectCount = 0) => {
+      if (redirectCount > 5) {
+        file.close();
+        fs.unlink(installerPath, () => {});
+        dialog.showMessageBox({
+          type: 'error',
+          title: 'Download Failed',
+          message: 'Too many redirects',
+          detail: 'Failed to download the update. Please try again later.',
+          buttons: ['OK']
+        });
+        return;
       }
-    }, (response) => {
-      response.pipe(file);
 
-      file.on('finish', () => {
-        file.close(() => {
-          console.log('Download complete!');
-          console.log('File saved at:', installerPath);
+      console.log(`Attempt ${redirectCount + 1}: Fetching from ${url}`);
 
-          // Verify file exists and has size
-          setTimeout(() => {
-            if (!fs.existsSync(installerPath)) {
-              dialog.showMessageBox({
-                type: 'error',
-                title: 'Download Failed',
-                message: 'Installer file not found after download',
-                detail: `Expected path: ${installerPath}`,
-                buttons: ['OK']
-              });
-              return;
-            }
+      https.get(url, {
+        headers: {
+          'User-Agent': 'PURE-PRESENTER',
+          'Accept': 'application/octet-stream'
+        }
+      }, (response) => {
+        console.log('Response status:', response.statusCode);
+        console.log('Response headers:', JSON.stringify(response.headers, null, 2));
 
-            const stats = fs.statSync(installerPath);
-            console.log('Installer file size:', stats.size, 'bytes');
-
-            if (stats.size < 1000) {
-              dialog.showMessageBox({
-                type: 'error',
-                title: 'Download Failed',
-                message: 'Downloaded file appears to be incomplete',
-                detail: `File size: ${stats.size} bytes (too small)`,
-                buttons: ['OK']
-              });
-              return;
-            }
-
-            // Launch installer
-            const installResponse = dialog.showMessageBoxSync({
-              type: 'info',
-              title: 'Update Ready',
-              message: 'Update downloaded successfully!',
-              detail: 'The installer will now launch. PURE PRESENTER will close automatically.',
-              buttons: ['Install Now', 'Cancel'],
-              defaultId: 0
+        // Handle redirects
+        if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 303 || response.statusCode === 307 || response.statusCode === 308) {
+          const redirectUrl = response.headers.location;
+          console.log('Redirecting to:', redirectUrl);
+          
+          if (!redirectUrl) {
+            file.close();
+            fs.unlink(installerPath, () => {});
+            dialog.showMessageBox({
+              type: 'error',
+              title: 'Download Failed',
+              message: 'Invalid redirect from server',
+              buttons: ['OK']
             });
+            return;
+          }
+          
+          // Follow redirect
+          downloadFile(redirectUrl, redirectCount + 1);
+          return;
+        }
 
-            if (installResponse === 0) {
-              console.log('User clicked Install Now');
-              console.log('Launching installer:', installerPath);
-              
-              // Use shell.openPath for Windows compatibility
-              shell.openPath(installerPath).then((error) => {
-                if (error) {
-                  console.error('Error launching installer:', error);
+        // Handle non-200 responses
+        if (response.statusCode !== 200) {
+          file.close();
+          fs.unlink(installerPath, () => {});
+          console.error('Download failed with status:', response.statusCode);
+          dialog.showMessageBox({
+            type: 'error',
+            title: 'Download Failed',
+            message: `Server returned error: ${response.statusCode}`,
+            detail: 'Please try again later or download manually from GitHub.',
+            buttons: ['OK']
+          });
+          return;
+        }
+
+        console.log('Starting download...');
+        downloadStarted = true;
+
+        response.pipe(file);
+
+        file.on('finish', () => {
+          file.close(() => {
+            console.log('Download complete!');
+            console.log('File saved at:', installerPath);
+
+            // Verify file exists and has size
+            setTimeout(() => {
+              if (!fs.existsSync(installerPath)) {
+                dialog.showMessageBox({
+                  type: 'error',
+                  title: 'Download Failed',
+                  message: 'Installer file not found after download',
+                  detail: `Expected path: ${installerPath}`,
+                  buttons: ['OK']
+                });
+                return;
+              }
+
+              const stats = fs.statSync(installerPath);
+              console.log('Installer file size:', stats.size, 'bytes');
+
+              if (stats.size < 1000) {
+                dialog.showMessageBox({
+                  type: 'error',
+                  title: 'Download Failed',
+                  message: 'Downloaded file appears to be incomplete',
+                  detail: `File size: ${stats.size} bytes (too small)\n\nPlease download manually from:\nhttps://github.com/Songnamz/PURE_PRESENTER/releases/latest`,
+                  buttons: ['OK']
+                });
+                return;
+              }
+
+              // Launch installer
+              const installResponse = dialog.showMessageBoxSync({
+                type: 'info',
+                title: 'Update Ready',
+                message: 'Update downloaded successfully!',
+                detail: `Downloaded ${(stats.size / (1024 * 1024)).toFixed(2)} MB\n\nThe installer will now launch. PURE PRESENTER will close automatically.`,
+                buttons: ['Install Now', 'Cancel'],
+                defaultId: 0
+              });
+
+              if (installResponse === 0) {
+                console.log('User clicked Install Now');
+                console.log('Launching installer:', installerPath);
+                
+                // Use shell.openPath for Windows compatibility
+                shell.openPath(installerPath).then((error) => {
+                  if (error) {
+                    console.error('Error launching installer:', error);
+                    dialog.showMessageBox({
+                      type: 'error',
+                      title: 'Installation Failed',
+                      message: 'Failed to launch installer',
+                      detail: `${error}\n\nYou can manually run the installer at:\n${installerPath}`,
+                      buttons: ['OK']
+                    });
+                  } else {
+                    console.log('Installer launched successfully via shell.openPath');
+                    
+                    // Quit the app after launching installer
+                    setTimeout(() => {
+                      app.quit();
+                    }, 1000);
+                  }
+                }).catch((error) => {
+                  console.error('Exception launching installer:', error);
                   dialog.showMessageBox({
                     type: 'error',
                     title: 'Installation Failed',
@@ -265,40 +343,30 @@ class AutoUpdater {
                     detail: `${error}\n\nYou can manually run the installer at:\n${installerPath}`,
                     buttons: ['OK']
                   });
-                } else {
-                  console.log('Installer launched successfully via shell.openPath');
-                  
-                  // Quit the app after launching installer
-                  setTimeout(() => {
-                    app.quit();
-                  }, 1000);
-                }
-              }).catch((error) => {
-                console.error('Exception launching installer:', error);
-                dialog.showMessageBox({
-                  type: 'error',
-                  title: 'Installation Failed',
-                  message: 'Failed to launch installer',
-                  detail: `${error}\n\nYou can manually run the installer at:\n${installerPath}`,
-                  buttons: ['OK']
                 });
-              });
-            }
-          }, 500); // Small delay to ensure file is completely written
+              }
+            }, 500); // Small delay to ensure file is completely written
+          });
+        });
+      }).on('error', (err) => {
+        console.error('HTTPS request error:', err);
+        if (!downloadStarted) {
+          file.close();
+          fs.unlink(installerPath, () => {});
+        }
+        
+        dialog.showMessageBox({
+          type: 'error',
+          title: 'Download Failed',
+          message: 'Network error occurred',
+          detail: `${err.message}\n\nPlease check your internet connection and try again.`,
+          buttons: ['OK']
         });
       });
-    }).on('error', (err) => {
-      fs.unlink(installerPath, () => {}); // Delete incomplete file
-      console.error('Download error:', err);
-      
-      dialog.showMessageBox({
-        type: 'error',
-        title: 'Download Failed',
-        message: 'Failed to download update',
-        detail: err.message,
-        buttons: ['OK']
-      });
-    });
+    };
+
+    // Start download
+    downloadFile(this.downloadUrl);
   }
 
   // Check for updates on startup (silent)

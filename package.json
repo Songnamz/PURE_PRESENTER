@@ -1,6 +1,6 @@
 {
   "name": "churchhymnalapp",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Pure Presenter - Presentation App",
   "main": "main.js",
   "scripts": {
@@ -43,8 +43,8 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": "always",
-      "createStartMenuShortcut": true,
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": false,
       "shortcutName": "PURE PRESENTER",
       "installerIcon": "assets/PURE PRESENTER.ico",
       "uninstallerIcon": "assets/PURE PRESENTER.ico",
