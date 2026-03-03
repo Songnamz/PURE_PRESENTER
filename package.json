@@ -59,7 +59,9 @@
       "guid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "warningsAsErrors": false,
       "displayLanguageSelector": false,
-      "installerLanguages": ["en_US"],
+      "installerLanguages": [
+        "en_US"
+      ],
       "unicode": true,
       "differentialPackage": false
     },
@@ -99,7 +101,7 @@
     "officeparser": "^5.2.1"
   },
   "devDependencies": {
-    "electron": "^38.3.0",
+    "electron": "^38.8.4",
     "electron-builder": "^26.0.12",
     "electron-packager": "^17.1.2"
   }
