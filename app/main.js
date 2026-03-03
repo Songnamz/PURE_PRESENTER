@@ -20,7 +20,6 @@ const BUNDLED_IMAGES_DIR = path.join(__dirname, '../Images');
 
 // User data directories (writable, in user's AppData folder for portable compatibility)
 const USER_DATA_DIR = app.getPath('userData');
-const SERVICE_SLIDES_FILE = path.join(USER_DATA_DIR, 'service-slides.json');
 const PRESENTATIONS_DIR = path.join(USER_DATA_DIR, 'Presentations');
 const AUDIO_DIR = path.join(USER_DATA_DIR, 'Audio');
 const VIDEO_DIR = path.join(USER_DATA_DIR, 'Video');
@@ -671,30 +670,6 @@ ipcMain.handle('get-background-path', (event, filename) => {
   }
 });
 
-// Get service slides
-ipcMain.handle('get-service-slides', () => {
-  try {
-    if (fs.existsSync(SERVICE_SLIDES_FILE)) {
-      const data = fs.readFileSync(SERVICE_SLIDES_FILE, 'utf8');
-      return JSON.parse(data);
-    }
-    return [];
-  } catch (err) {
-    console.error('Error reading service slides:', err);
-    return [];
-  }
-});
-
-// Save service slides
-ipcMain.handle('save-service-slides', (event, slides) => {
-  try {
-    fs.writeFileSync(SERVICE_SLIDES_FILE, JSON.stringify(slides, null, 2), 'utf8');
-    return { success: true };
-  } catch (err) {
-    console.error('Error saving service slides:', err);
-    return { success: false, error: err.message };
-  }
-});
 
 // Set background image on projector
 ipcMain.on('set-background', (event, filename) => {
@@ -1027,21 +1002,6 @@ ipcMain.on('adjust-image-zoom', (event, action) => {
   }
 });
 
-// Open visual editor in control window
-ipcMain.on('open-visual-editor', (event, data) => {
-  console.log('Opening visual editor for service:', data.service);
-  if (controlWindow && !controlWindow.isDestroyed()) {
-    controlWindow.webContents.send('open-visual-editor', data);
-  }
-});
-
-// Save visual slide from control window to list window
-ipcMain.on('save-visual-slide', (event, slideData) => {
-  console.log('Saving visual slide:', slideData);
-  if (listWindow && !listWindow.isDestroyed()) {
-    listWindow.webContents.send('save-visual-slide', slideData);
-  }
-});
 
 // Get available system fonts
 ipcMain.handle('get-system-fonts', async () => {
