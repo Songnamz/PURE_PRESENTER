@@ -10,6 +10,20 @@ dist/win-unpacked/resources/app.asar
 
 # Ignore Electron binaries
 app/node_modules/electron/dist/
-node_modules/electron/dist/electron.exe"dist/" 
-"Video/" 
-"app/node_modules/electron/dist/" 
+node_modules/electron/dist/electron.exe"dist/"
+"Video/"
+"app/node_modules/electron/dist/"
+
+# License & admin tools (private, not for public repo)
+License-Key-Generator-GUI.bat
+License-Key-Generator-GUI.ps1
+Revoke-License-GUI.ps1
+Revoke-License-Tool-GUI.bat
+delete-local-license.js
+generate-license.js
+get-activated-license.js
+revoke-license.js
+license-blacklist.json
+app/license-blacklist.json
+app/license.js
+app/activation.html
